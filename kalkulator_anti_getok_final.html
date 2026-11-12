@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Servis Pak Nanbe</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load font Inter & Bebas Neue -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #141414; /* Netflix dark */
+            color: #e5e5e5;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, .cinematic-title {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* Netflix Carousel Styling */
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding-bottom: 16px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none; /* Firefox */
+        }
+        .carousel-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        .nf-card {
+            min-width: 240px;
+            max-width: 240px;
+            height: 135px; /* 16:9 aspect ratio */
+            background-color: #262626;
+            border-radius: 6px;
+            scroll-snap-align: start;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .nf-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+            border-color: #404040;
+        }
+        
+        .nf-card.active {
+            border-color: #E50914;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
+        }
+
+        .nf-card-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        
+        .nf-card:hover .nf-card-bg, .nf-card.active .nf-card-bg {
+            opacity: 1;
+        }
+
+        .nf-card-title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+            font-weight: 600;
+            font-size: 14px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* Hero Gradient Fade */
+        .hero-vignette {
+            background: linear-gradient(to top, #141414 0%, transparent 100%);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* 2D Motion Graphics Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px rgba(229,9,20,0.5)); }
+            50% { opacity: 0.6; filter: drop-shadow(0 0 15px rgba(229,9,20,0.8)); }
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes swing {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .motion-float { animation: float 3s ease-in-out infinite; }
+        .motion-pulse { animation: pulse-glow 2s ease-in-out infinite; }
+        .motion-spin { animation: spin-slow 8s linear infinite; }
+        .motion-swing { animation: swing 2.5s ease-in-out infinite; }
+    </style>
+</head>
+<body class="antialiased min-h-screen relative pb-20">
+
+    <!-- Navbar -->
+    <nav class="absolute top-0 w-full z-50 p-4 md:px-12 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+        <div class="text-[#E50914] font-bold text-3xl cinematic-title tracking-wider">NANBE.TIPS</div>
+        <div class="flex items-center gap-3">
+            <span id="sync-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-zinc-800 text-gray-300 border border-zinc-700">SYNCING...</span>
+            <div class="text-xs md:text-sm font-semibold text-gray-300 hidden sm:block">INTERACTIVE SERIES</div>
+        </div>
+    </nav>
+
+    <!-- Hero Section (Three.js Canvas Background) -->
+    <div class="relative w-full h-[50vh] md:h-[65vh] flex items-end overflow-hidden">
+        
+        <!-- Three.js Container -->
+        <div id="canvas-container" class="absolute inset-0 z-0"></div>
+        
+        <div class="absolute inset-0 hero-vignette z-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/70 to-transparent hidden md:block z-0"></div>
+
+        <!-- Hero Content -->
+        <div class="relative z-10 w-full px-4 md:px-12 pb-8 md:pb-12 max-w-2xl animate-fade-in">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="bg-[#E50914] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">N</span>
+                <span class="text-gray-300 text-xs tracking-widest uppercase font-semibold">Tontonan Wajib Emak-emak</span>
+            </div>
+            <h1 class="text-5xl md:text-7xl text-white drop-shadow-lg mb-2 leading-none shadow-black cinematic-title">
+                ANTI-GETOK <br><span class="text-4xl md:text-5xl text-gray-300">KALKULATOR</span>
+            </h1>
+            <p class="text-sm md:text-base text-gray-300 drop-shadow-md font-light mb-4 leading-relaxed max-w-lg">
+                Pilih seri kerusakan perabotanmu di bawah ini. Algoritma Pak Nanbe akan membongkar rahasia estimasi harga komponen dan ongkos tukang yang paling wajar.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Content / Slideshow Series -->
+    <div class="relative z-20 px-4 md:px-12 -mt-4">
+        
+        <!-- Row 1: Kategori -->
+        <div class="mb-8">
+            <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 1: Kategori Masalah</h2>
+            <div id="row-kategori" class="carousel-container">
+                <!-- Diisi oleh JS -->
+            </div>
+        </div>
+
+        <!-- Row 2: Barang (Hidden default) -->
+        <div id="section-barang" class="mb-8 hidden animate-fade-in">
+            <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 2: Objek Kerusakan</h2>
+            <div id="row-barang" class="carousel-container">
+                <!-- Diisi oleh JS -->
+            </div>
+        </div>
+
+        <!-- Row 3: Gejala (Hidden default) -->
+        <div id="section-gejala" class="mb-8 hidden animate-fade-in">
+            <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 3: Sinopsis Gejala</h2>
+            <div id="row-gejala" class="carousel-container">
+                <!-- Diisi oleh JS -->
+            </div>
+        </div>
+
+        <!-- Result Box (Hidden by default) -->
+        <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto">
+            <h2 class="text-3xl text-white mb-4 cinematic-title text-center"><span class="text-[#E50914]">EPISODE FINAL:</span> HASIL ANALISA</h2>
+            
+            <div class="bg-[#181818] border border-zinc-800 rounded-lg shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in">
+                
+                <!-- SVG Pak Nanbe Profile -->
+                <div class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800">
+                    <div class="absolute top-4 left-4 z-10">
+                        <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded">PAK NANBE (EXPERT)</span>
+                    </div>
+                    <!-- Inline SVG Kucing Oren (Pak Nanbe) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-48 h-48 drop-shadow-2xl">
+                        <circle cx="50" cy="50" r="45" fill="#f97316"/> <!-- Orange Base -->
+                        <polygon points="15,20 30,35 15,45" fill="#ea580c"/> <!-- Ear L -->
+                        <polygon points="85,20 70,35 85,45" fill="#ea580c"/> <!-- Ear R -->
+                        <circle cx="35" cy="45" r="5" fill="#fff"/> <!-- Eye L -->
+                        <circle cx="65" cy="45" r="5" fill="#fff"/> <!-- Eye R -->
+                        <circle cx="35" cy="45" r="2" fill="#000"/> <!-- Pupil L -->
+                        <circle cx="65" cy="45" r="2" fill="#000"/> <!-- Pupil R -->
+                        <path d="M45,55 Q50,60 55,55" stroke="#fff" stroke-width="2" fill="none"/> <!-- Mouth -->
+                        <polygon points="48,50 52,50 50,53" fill="#ea580c"/> <!-- Nose -->
+                        <!-- Glasses -->
+                        <circle cx="35" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
+                        <circle cx="65" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
+                        <line x1="45" y1="45" x2="55" y2="45" stroke="#333" stroke-width="2"/>
+                    </svg>
+                </div>
+
+                <!-- Result Details -->
+                <div class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818]">
+                    <div class="flex flex-wrap items-center justify-between mb-5 gap-3">
+                        <div class="flex gap-2 flex-wrap items-center">
+                            <span id="res-keputusan" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider">SANGAT DISARANKAN: SERVIS</span>
+                            <span class="text-gray-400 text-xs border border-gray-600 px-1.5 py-0.5 rounded-sm">Umur Normal: <span id="res-umur" class="text-gray-200 font-semibold">-</span></span>
+                            <span class="text-blue-400 text-xs border border-blue-600 px-1.5 py-0.5 rounded-sm">Sisa: <span id="res-sisa" class="text-blue-200 font-semibold">-</span></span>
+                        </div>
+                        <!-- Harga Beli Comparison -->
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500 block">Perkiraan Harga Beli Baru</span>
+                            <span id="res-beli" class="text-sm font-bold text-gray-300 line-through"></span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mb-6 text-sm md:text-base">
+                        <div class="flex justify-between border-b border-zinc-700 pb-3">
+                            <span class="text-gray-400">Komponen Bermasalah</span> 
+                            <span id="res-part" class="text-white font-semibold text-right max-w-[60%] text-orange-400"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-zinc-700 pb-3">
+                            <span class="text-gray-400">Harga Komponen (Estimasi)</span> 
+                            <span id="res-harga" class="text-white font-semibold text-right"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-zinc-700 pb-3">
+                            <span class="text-gray-400">Ongkos Tukang (Wajar)</span> 
+                            <span id="res-ongkos" class="text-white font-semibold text-right"></span>
+                        </div>
+                        <div class="flex justify-between pt-2 items-end">
+                            <span class="text-lg md:text-xl font-bold text-white">Total Maksimal</span> 
+                            <span id="res-total" class="text-2xl md:text-4xl font-bold text-[#E50914] text-right cinematic-title"></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-zinc-800/50 p-4 rounded-md border-l-4 border-orange-500 mb-4">
+                        <p class="text-orange-400 font-bold mb-1 text-xs uppercase tracking-wider">Pesan Sponsor (Pak Nanbe):</p>
+                        <p class="text-gray-200 text-sm leading-relaxed font-light" id="res-saran"></p>
+                    </div>
+
+                    <!-- Action Button -->
+                    <a id="btn-search-maps" href="#" target="_blank" class="w-full block text-center bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 px-4 rounded transition duration-300 cinematic-title text-xl tracking-wider">
+                        <span class="flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Cari Jasa Servis Terdekat di Maps
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // === KONFIGURASI GOOGLE SHEETS ===
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQpG2blnISqZ66WXTq7WTpbSoeamPXPoFKcwKV2SAICOeV-7jUpCN4Bsn8PeUjXyVXys-9V_2why6L0/pub?gid=0&single=true&output=csv";
+        const SHEET_ID = "1zQqtXfcD6e5jFc5eWbPUJSxQkqeiTOJbnk76tPyMJHs";
+
+        // === 1. THREE.JS BACKGROUND ANIMATION ===
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: 0xE50914,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            const torusKnot = new THREE.Mesh(geometry, material);
+            scene.add(torusKnot);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            const posArray = new Float32Array(particlesCount * 3);
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 60;
+            }
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.2,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.4
+            });
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                torusKnot.rotation.x += 0.002;
+                torusKnot.rotation.y += 0.003;
+                particlesMesh.rotation.y -= 0.001;
+                renderer.render(scene, camera);
+            }
+
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            animate();
+        }
+
+        // === 2. DATABASE KOMPREHENSIF BAWAAN + SINKRONISASI GOOGLE SHEETS ===
+        const icons = {
+            elektronik: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><circle cx="12" cy="10" r="2" class="motion-pulse" fill="#E50914" stroke="none"/></svg>`,
+            pribadi: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>`,
+            kendaraan: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="7" cy="17" r="2" stroke-width="1.5"/><circle cx="17" cy="17" r="2" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 17H3v-6l2-5h9l4 5h3v6h-2"/></svg>`,
+            rumah: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>`,
+            gejala: `<svg class="w-12 h-12 text-[#E50914] motion-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+        };
+
+        const db = {
+            "elektronik": {
+                label: "Elektronik & Dapur",
+                icon: icons.elektronik,
+                barang: {
+                    "ac": { 
+                        label: "AC (Air Conditioner)", 
+                        umurNormal: "8 - 10 Tahun",
+                        gejala: { 
+                            "tdkdingin": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Kompresor Lemah", harga: 150000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "3 - 5 Tahun lagi", keputusan: "servis", saran: "Angin keluar tapi tidak dingin. Kompresor tidak mau angkat karena kapasitor melemah. Wajib ganti kapasitor original, bukan servis gulung." },
+                            "bocorair": { level: "ringan", levelLabel: "Ringan", part: "Pipa Pembuangan Mampet (Sludge)", harga: 0, ongkos: 75000, hargaBaru: 3500000, umurSisa: "5+ Tahun lagi", keputusan: "servis", saran: "Air menetes di indoor. Biasanya lumut menumpuk menyumbat jalur pembuangan. Cukup ditiup/tembak dengan selang air." },
+                            "freonbocor": { level: "berat", levelLabel: "Berat", part: "Pipa Evaporator Berlubang / Las Bocor", harga: 250000, ongkos: 250000, hargaBaru: 3500000, umurSisa: "< 1 Tahun (Rawan Bocor Ulang)", keputusan: "pertimbangkan", saran: "Freon habis total. Minta tukang las cari titik bocor dengan tekanan angin dulu, jangan langsung isi freon baru." },
+                            "berisik": { level: "ringan", levelLabel: "Ringan", part: "Bantalan Blower / Motor Fan Kotor", harga: 15000, ongkos: 60000, hargaBaru: 3500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kipas indoor berisik 'ngik-ngik'. Cukup beri pelumas atau bersihkan kotoran di as kipas." },
+                            "modulrusak": { level: "berat", levelLabel: "Berat", part: "Modul PCB Control / IC Power", harga: 450000, ongkos: 150000, hargaBaru: 3500000, umurSisa: "2 Tahun lagi", keputusan: "pertimbangkan", saran: "AC mati total, ditekan remote tidak merespon sama sekali. IC tersambar petir atau korsleting." },
+                            "kompresormati": { level: "berat", levelLabel: "Berat", part: "Kompresor AC Macet / Jebol", harga: 1200000, ongkos: 400000, hargaBaru: 3500000, umurSisa: "< 1 Tahun", keputusan: "beli", saran: "Biaya ganti kompresor hampir menyamai harga beli AC baru (3.5jt). Disarankan langsung beli unit baru dengan garansi pabrik." },
+                            "bauapek": { level: "ringan", levelLabel: "Ringan", part: "Evaporator Berjamur & Bak Penampung", harga: 25000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "5+ Tahun lagi", keputusan: "servis", saran: "AC mengeluarkan bau tak sedap saat dinyalakan. Perlu cuci besar (overhaul) total untuk membersihkan jamur." },
+                            "remotetdkfungsi": { level: "ringan", levelLabel: "Ringan", part: "Mata Penerima (Receiver) AC", harga: 35000, ongkos: 50000, hargaBaru: 3500000, umurSisa: "5+ Tahun lagi", keputusan: "servis", saran: "Remote normal tapi AC tidak mau nyala lewat remote. Receiver di panel AC kotor atau korslet." },
+                            "kabelterbakar": { level: "sedang", levelLabel: "Sedang", part: "Kabel Instalasi / Terminal Kendur", harga: 25000, ongkos: 75000, hargaBaru: 3500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tercium bau hangus plastik terbakar di dekat colokan AC. Segera matikan sekring listrik." },
+                            "acjeglek": { level: "sedang", levelLabel: "Sedang", part: "Overload Kompresor / Ampere Tinggi", harga: 150000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Setiap AC dinyalakan, MCB rumah langsung turun/jeglek. Kompresor sudah menarik arus terlalu tinggi." }
+                        }
+                    },
+                    "tv": { 
+                        label: "TV LED/Smart TV", 
+                        umurNormal: "5 - 7 Tahun",
+                        gejala: { 
+                            "suara_tanpa_gambar": { level: "sedang", levelLabel: "Sedang", part: "Lampu Backlight LED Strip", harga: 150000, ongkos: 150000, hargaBaru: 3000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Layar hitam gelap tapi suara siaran normal. Sorot pakai senter HP, terlihat gambar samar. Backlight putus." },
+                            "matitotal": { level: "sedang", levelLabel: "Sedang", part: "Power Supply Board (Sekring/Capacitor)", harga: 100000, ongkos: 100000, hargaBaru: 3000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Indikator lampu merah mati total tidak ada respon. Sering terjadi karena lonjakan petir/tegangan PLN." },
+                            "garislayar": { level: "berat", levelLabel: "Berat", part: "Panel Layar LCD / Flexible COF Putus", harga: 1200000, ongkos: 300000, hargaBaru: 3000000, umurSisa: "< 1 Tahun", keputusan: "beli", saran: "Muncul garis vertikal/horizontal warna-warni di layar. Perbaikan panel sangat mahal dan rawan rusak lagi. Mending beli baru." },
+                            "bintikputih": { level: "ringan", levelLabel: "Ringan", part: "Lensa Diffuser Backlight Lepas", harga: 0, ongkos: 100000, hargaBaru: 3000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Ada titik-titik putih terang di layar TV. Lensa plastik di dalam lepas menimpa LED, cukup dilem ulang." },
+                            "hdmi": { level: "sedang", levelLabel: "Sedang", part: "IC HDMI Controller / Port Rusak", harga: 150000, ongkos: 150000, hargaBaru: 3000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Colok PS/Laptop ke port HDMI tidak terdeteksi 'No Signal'. IC HDMI dalam board korslet." },
+                            "suarahilang": { level: "ringan", levelLabel: "Ringan", part: "IC Audio / Speaker Internal Sobek", harga: 50000, ongkos: 75000, hargaBaru: 3000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Gambar normal jernih tapi suara sember atau hilang sama sekali." },
+                            "smart_ngadat": { level: "ringan", levelLabel: "Ringan", part: "Software / Cache Full / Emmc", harga: 0, ongkos: 50000, hargaBaru: 3000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Smart TV sering restart sendiri saat buka Netflix/YouTube. Perlu factory reset atau update firmware." },
+                            "layarberbayang": { level: "sedang", levelLabel: "Sedang", part: "T-Con Board / Flex Cable", harga: 200000, ongkos: 100000, hargaBaru: 3000000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Gambar lambat (ghosting) atau warna pudar seperti negatif foto." },
+                            "tombolmanual": { level: "ringan", levelLabel: "Ringan", part: "Tact Switch Samping TV", harga: 10000, ongkos: 50000, hargaBaru: 3000000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Tombol power/channel manual di bodi TV tidak berfungsi (pakai remote normal)." },
+                            "layarpecah": { level: "berat", levelLabel: "Berat", part: "Panel LED Pecah Total", harga: 2500000, ongkos: 200000, hargaBaru: 3000000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Layar terkena benturan fisik/pecah. Harga panel baru hampir sama dengan harga TV baru dipasaran." }
+                        }
+                    },
+                    "kulkas": { 
+                        label: "Kulkas (1/2 Pintu)", 
+                        umurNormal: "7 - 10 Tahun",
+                        gejala: { 
+                            "nyalatappananas": { level: "sedang", levelLabel: "Sedang", part: "Relay PTC / Overload Kompresor", harga: 45000, ongkos: 75000, hargaBaru: 2500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Lampu kulkas nyala tapi kompresor tidak bergetar/dingin. Relay starter terbakar." },
+                            "esbunga": { level: "sedang", levelLabel: "Sedang", part: "Defrost Timer / Bimetal / Heater", harga: 85000, ongkos: 100000, hargaBaru: 2500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Freezer jadi balok es tebal sampai kipas mentok dan kulkas atas tidak dingin. Sistem defrost macet." },
+                            "bocorfreon": { level: "berat", levelLabel: "Berat", part: "Pipa Evaporator Tertusuk / Karat", harga: 250000, ongkos: 250000, hargaBaru: 2500000, umurSisa: "< 1 Tahun", keputusan: "pertimbangkan", saran: "Kulkas tidak dingin sama sekali padahal kompresor hidup terus. Sering karena tertusuk pisau saat es dibersihkan." },
+                            "pintuanyir": { level: "ringan", levelLabel: "Ringan", part: "Karet Magnet Pintu Getas", harga: 60000, ongkos: 60000, hargaBaru: 2500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pintu kulkas tidak menutup rapat, bunga es cepat menumpuk dan tagihan listrik melonjak." },
+                            "kompresorbising": { level: "sedang", levelLabel: "Sedang", part: "Bantalan Karet Kompresor / Piston", harga: 50000, ongkos: 100000, hargaBaru: 2500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Kulkas berbunyi 'Brak-brung' keras saat kompresor mau mati atau nyala." },
+                            "bodykeset": { level: "ringan", levelLabel: "Ringan", part: "Kabel Grounding / Induksi Body", harga: 10000, ongkos: 50000, hargaBaru: 2500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pegang body kulkas terasa kesemutan/setrum kecil. Kabel ground tidak terpasang benar." },
+                            "lampumati": { level: "ringan", levelLabel: "Ringan", part: "Saklar Pintu / Bola Lampu", harga: 15000, ongkos: 30000, hargaBaru: 2500000, umurSisa: "6 Tahun lagi", keputusan: "servis", saran: "Lampu kulkas mati saat dibuka, bola lampu putus atau switch pintu macet kotor." },
+                            "airgenang": { level: "ringan", levelLabel: "Ringan", part: "Saluran Pembuangan Air Buntu", harga: 0, ongkos: 50000, hargaBaru: 2500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Air menggenang di bawah rak sayuran kulkas karena lubang pembuangan tersumbat kotoran es." },
+                            "baukosong": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Total & Karbon", harga: 0, ongkos: 50000, hargaBaru: 2500000, umurSisa: "6 Tahun lagi", keputusan: "servis", saran: "Bau menyengat di dalam kulkas meski sudah dibersihkan. Perlu sterilisasi total." },
+                            "kompresormati": { level: "berat", levelLabel: "Berat", part: "Kompresor Macet / Terbakar", harga: 850000, ongkos: 300000, hargaBaru: 2500000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Kompresor jebol total. Biaya ganti hampir sama dengan kulkas baru, lebih baik beli baru." }
+                        }
+                    },
+                    "mesincuci": { 
+                        label: "Mesin Cuci", 
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: { 
+                            "air_terus": { level: "ringan", levelLabel: "Ringan", part: "Karet Seal Pembuangan / Klep Kotor", harga: 25000, ongkos: 60000, hargaBaru: 2200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air yang dimasukkan langsung mengalir keluar ke pembuangan. Karet klep mengganjal kotoran uang koin/kancing." },
+                            "pengeringmati": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Pengering / Rem Tabung", harga: 45000, ongkos: 75000, hargaBaru: 2200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Mesin cuci untuk mencuci mutar, tapi giliran dikeringkan hanya berdengung tidak berputar kencang." },
+                            "bocorbawah": { level: "ringan", levelLabel: "Ringan", part: "Seal As Tabung / Selang Pembuangan", harga: 40000, ongkos: 80000, hargaBaru: 2200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Air merembes menetes dari bawah mesin cuci saat proses mencuci." },
+                            "pulsatormacet": { level: "ringan", levelLabel: "Ringan", part: "Gigi Girboks / As Pulsator Aus", harga: 65000, ongkos: 80000, hargaBaru: 2200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Dinamo bawah berputar kencang, tapi baling-baling (pulsator) di dalam diam saja tidak mengaduk." },
+                            "suarabising": { level: "sedang", levelLabel: "Sedang", part: "Bearing / Laher Tabung Karatan", harga: 120000, ongkos: 150000, hargaBaru: 2200000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Mesin cuci berbunyi gemuruh sangat keras bagaikan jet take-off saat berputar kencang." },
+                            "pasanir_mati": { level: "sedang", levelLabel: "Sedang", part: "Water Inlet Valve Elektrik", harga: 55000, ongkos: 75000, hargaBaru: 2200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Mesin cuci otomatis tidak mau mengisi air sendiri saat tombol Start ditekan." },
+                            "modulerror": { level: "berat", levelLabel: "Berat", part: "Modul PCB Mesin Cuci Otomatis", harga: 350000, ongkos: 150000, hargaBaru: 2200000, umurSisa: "2 Tahun lagi", keputusan: "pertimbangkan", saran: "Lampu panel kedip-kedip error, tombol tidak berfungsi untuk memilih mode cuci." },
+                            "dinamobakar": { level: "berat", levelLabel: "Berat", part: "Gulungan Dinamo Wash Terbakar", harga: 300000, ongkos: 150000, hargaBaru: 2200000, umurSisa: "< 1 Tahun", keputusan: "pertimbangkan", saran: "Tercium bau hangus dan keluar asap tipis dari bagian bawah mesin saat dicoba mencuci." },
+                            "tutupbuka": { level: "ringan", levelLabel: "Ringan", part: "Switch Pengaman Tutup (Lid Switch)", harga: 20000, ongkos: 50000, hargaBaru: 2200000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Mesin cuci bukaan atas (top load) enggan berproses karena sensor tutup pintu patah." },
+                            "getarparah": { level: "ringan", levelLabel: "Ringan", part: "Kaki Penyangga / Per Shockbreaker", harga: 45000, ongkos: 60000, hargaBaru: 2200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Mesin cuci bergeser sendiri dan melompat-lompat saat proses pengeringan karena posisi pakaian tidak seimbang / per longgar." }
+                        }
+                    },
+                    "laptop": { 
+                        label: "Laptop", 
+                        umurNormal: "4 - 6 Tahun",
+                        gejala: { 
+                            "matitotal": { level: "berat", levelLabel: "Berat", part: "IC Power / Mosfet / Jalur Short", harga: 350000, ongkos: 200000, hargaBaru: 6000000, umurSisa: "2 Tahun lagi", keputusan: "pertimbangkan", saran: "Dicolok charger lampu indikator mati total. Jangan asal setuju ganti satu motherboard utuh!" },
+                            "bateraidrop": { level: "ringan", levelLabel: "Ringan", part: "Baterai Tanam / CMOS", harga: 250000, ongkos: 50000, hargaBaru: 6000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Laptop langsung mati saat kabel charger dicabut. Waktunya ganti baterai baru." },
+                            "keyboardrusak": { level: "ringan", levelLabel: "Ringan", part: "1 Set Keyboard Laptop", harga: 175000, ongkos: 75000, hargaBaru: 6000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Beberapa huruf tidak bisa diketik atau mengetik sendiri secara acak." },
+                            "lemotbsod": { level: "ringan", levelLabel: "Ringan", part: "Harddisk Bad Sector / Upgrade SSD", harga: 350000, ongkos: 50000, hargaBaru: 6000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Laptop sangat lambat dan sering muncul Blue Screen (BSOD). Segera ganti ke SSD." },
+                            "kipasberisik": { level: "ringan", levelLabel: "Ringan", part: "Fan Cooler / Cleaning Thermal Pasta", harga: 50000, ongkos: 75000, hargaBaru: 6000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kipas bergemuruh kencang dan laptop cepat panas lalu mati sendiri (overheat)." },
+                            "layargaris": { level: "berat", levelLabel: "Berat", part: "Kabel Fleksibel / Panel LCD Laptop", harga: 750000, ongkos: 150000, hargaBaru: 6000000, umurSisa: "2 Tahun lagi", keputusan: "pertimbangkan", saran: "Layar bergaris atau berkedip saat engsel laptop dibuka-tutup." },
+                            "engselpatah": { level: "sedang", levelLabel: "Sedang", part: "Bosh Engsel / Casing Dudukan Baut", harga: 100000, ongkos: 100000, hargaBaru: 6000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Casing dekat layar retak/patah saat dibuka. Perlu disolder ulang dengan resin/baut tanam." },
+                            "portusb_mati": { level: "ringan", levelLabel: "Ringan", part: "USB Board / IC Fuse USB", harga: 75000, ongkos: 100000, hargaBaru: 6000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Colok flashdisk di port USB tertentu tidak terdeteksi sama sekali." },
+                            "wifi_hilang": { level: "ringan", levelLabel: "Ringan", part: "Wireless Card / Driver WiFi", harga: 90000, ongkos: 50000, hargaBaru: 6000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Laptop tidak bisa mendeteksi jaringan WiFi rumah padahal HP normal." },
+                            "adaptorpanas": { level: "ringan", levelLabel: "Ringan", part: "Kabel Adaptor Charger", harga: 120000, ongkos: 0, hargaBaru: 6000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kabel charger terkelupas atau putus di tengah. Bahaya korsleting, ganti adaptor baru." }
+                        }
+                    },
+                    "komputer": { 
+                        label: "Komputer (PC)", 
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: { 
+                            "bunyibeep": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Pin RAM", harga: 0, ongkos: 50000, hargaBaru: 5000000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "PC menyala tapi tidak tampil ke monitor dan bunyi beep panjang. Cabut RAM, bersihkan pin emasnya." },
+                            "psdso_jeglek": { level: "sedang", levelLabel: "Sedang", part: "Power Supply Unit (PSU)", harga: 350000, ongkos: 50000, hargaBaru: 5000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "PC mati mendadak saat dipakai main game berat atau render." },
+                            "vga_artifact": { level: "berat", levelLabel: "Berat", part: "Chipset GPU / VGA Card Rusak", harga: 600000, ongkos: 150000, hargaBaru: 5000000, umurSisa: "1 Tahun lagi", keputusan: "pertimbangkan", saran: "Layar penuh garis kotak-kotak warna hijau/pink aneh saat masuk Windows." },
+                            "biosloop": { level: "ringan", levelLabel: "Ringan", part: "Baterai CMOS / Harddisk Lepas", harga: 15000, ongkos: 50000, hargaBaru: 5000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Setiap dinyalakan selalu masuk menu BIOS dan tanggal jam reset ulang." },
+                            "kipasjet": { level: "ringan", levelLabel: "Ringan", part: "Thermal Paste Kering", harga: 35000, ongkos: 50000, hargaBaru: 5000000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Kipas processor berputar kencang berisik terus menerus." },
+                            "motherboardmati": { level: "berat", levelLabel: "Berat", part: "Mainboard PC Rusak Kapasitor", harga: 450000, ongkos: 150000, hargaBaru: 5000000, umurSisa: "2 Tahun lagi", keputusan: "pertimbangkan", saran: "Kipas berputar sedetik lalu mati lagi berulang-ulang." },
+                            "hdd_bad": { level: "ringan", levelLabel: "Ringan", part: "Ganti SSD Sata 240GB", harga: 250000, ongkos: 50000, hargaBaru: 5000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Komputer lambat booting sampai 10 menit. Waktunya migrasi ke SSD." },
+                            "casing_setrum": { level: "ringan", levelLabel: "Ringan", part: "Kabel Grounding Stopkontak", harga: 20000, ongkos: 50000, hargaBaru: 5000000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Disentuh body CPU terasa nyetrum kecil." },
+                            "reset_sendiri": { level: "sedang", levelLabel: "Sedang", part: "Suhu Processor / Overheat", harga: 35000, ongkos: 50000, hargaBaru: 5000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Komputer restart sendiri secara mendadak tanpa pesan error." },
+                            "usb_front": { level: "ringan", levelLabel: "Ringan", part: "Kabel Front Panel USB Casing", harga: 45000, ongkos: 50000, hargaBaru: 5000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Port USB di bagian depan casing tidak berfungsi, colok di belakang normal." }
+                        }
+                    },
+                    "microwave": { 
+                        label: "Microwave / Oven", 
+                        umurNormal: "6 - 8 Tahun",
+                        gejala: { 
+                            "tidak_panas": { level: "sedang", levelLabel: "Sedang", part: "Tabung Magnetron / Sekring High Voltage", harga: 175000, ongkos: 100000, hargaBaru: 1300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Piringan berputar normal dan lampu nyala terang, tapi makanan tetap dingin." },
+                            "piringmati": { level: "ringan", levelLabel: "Ringan", part: "Motor Penggerak Piringan (Turntable)", harga: 45000, ongkos: 60000, hargaBaru: 1300000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Makanan panas tapi kaca piring di dalam tidak berputar." },
+                            "bungaapi": { level: "sedang", levelLabel: "Sedang", part: "Mika Cover / Waveguide Rusak", harga: 25000, ongkos: 50000, hargaBaru: 1300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ada kilatan petir/bunga api di dalam microwave saat tombol start ditekan." },
+                            "touchpad_mati": { level: "sedang", levelLabel: "Sedang", part: "Membran Panel Tombol Sentuh", harga: 85000, ongkos: 75000, hargaBaru: 1300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tombol start atau angka waktu dipencet tidak ada respon." },
+                            "pintumacet": { level: "ringan", levelLabel: "Ringan", part: "Kait Pengunci Pintu (Latch)", harga: 30000, ongkos: 50000, hargaBaru: 1300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Microwave tidak mau menyala karena sensor pintu mendeteksi pintu belum rapat." },
+                            "bauhangus": { level: "ringan", levelLabel: "Ringan", part: "Sisa Minyak Makanan Terbakar", harga: 0, ongkos: 50000, hargaBaru: 1300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Keluar bau gosong karena cipratan minyak menempel di elemen pemanas atas." },
+                            "sekringputus": { level: "ringan", levelLabel: "Ringan", part: "Fuse Tabung Kaca Utama", harga: 10000, ongkos: 40000, hargaBaru: 1300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Mati total mendadak setelah colokan listrik dicabut pasang." },
+                            "lampumati": { level: "ringan", levelLabel: "Ringan", part: "Bola Lampu Internal Microwave", harga: 20000, ongkos: 40000, hargaBaru: 1300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pemanas normal tapi lampu di dalam mati sehingga tidak bisa melihat makanan." },
+                            "suaraberdengung": { level: "sedang", levelLabel: "Sedang", part: "Trafo High Voltage (HV Transformer)", harga: 200000, ongkos: 100000, hargaBaru: 1300000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Mengeluarkan suara dengungan 'Bzzzz' sangat keras saat memanaskan makanan." },
+                            "bodykeset": { level: "ringan", levelLabel: "Ringan", part: "Kabel Grounding Colokan", harga: 15000, ongkos: 40000, hargaBaru: 1300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Tersengat getaran kecil saat memegang bodi besi microwave." }
+                        }
+                    },
+                    "kipas": { 
+                        label: "Kipas Angin", 
+                        umurNormal: "4 - 6 Tahun",
+                        gejala: { 
+                            "dengung": { level: "ringan", levelLabel: "Ringan", part: "Kapasitor Kipas 1.5uF", harga: 15000, ongkos: 35000, hargaBaru: 250000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Mesin berdengung tapi baling tidak mau berputar kecuali dibantu putar tangan." },
+                            "mati": { level: "ringan", levelLabel: "Ringan", part: "Thermofuse (Sekring Panas)", harga: 10000, ongkos: 40000, hargaBaru: 250000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Mati total tidak ada suara sama sekali. Sekring pengaman di dalam dinamo putus karena overheat." },
+                            "seret": { level: "ringan", levelLabel: "Ringan", part: "Bushing / As Kipas Kering", harga: 15000, ongkos: 40000, hargaBaru: 250000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Baling diputar tangan terasa berat/seret. Perlu dibersihkan dan diberi minyak jahit." },
+                            "pindahin": { level: "ringan", levelLabel: "Ringan", part: "Gearbox Leher Kipas Patah", harga: 20000, ongkos: 40000, hargaBaru: 250000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kipas angin tidak mau menoleh ke kanan-kiri (mandek di tengah)." },
+                            "tombolmacet": { level: "ringan", levelLabel: "Ringan", part: "Rumah Tombol / Per Patah", harga: 15000, ongkos: 35000, hargaBaru: 250000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tombol kecepatan 1, 2, 3 tidak mau mengunci saat ditekan." },
+                            "balingpatah": { level: "ringan", levelLabel: "Ringan", part: "Baling-baling Kipas Baru", harga: 30000, ongkos: 0, hargaBaru: 250000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Baling retak atau patah karena jatuh. Tinggal beli baling pengganti pasang sendiri." },
+                            "goyangparah": { level: "ringan", levelLabel: "Ringan", part: "As Kipas Bengkok", harga: 25000, ongkos: 40000, hargaBaru: 250000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Kipas berputar sambil oleng/goyang sangat kencang karena as pernah benturan." },
+                            "kabelputus": { level: "ringan", levelLabel: "Ringan", part: "Kabel Power AC", harga: 15000, ongkos: 30000, hargaBaru: 250000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kipas kadang nyala kadang mati saat kabelnya digoyang-goyang." },
+                            "dinamobakar": { level: "berat", levelLabel: "Berat", part: "Gulungan Dinamo Utama Koslet", harga: 85000, ongkos: 50000, hargaBaru: 250000, umurSisa: "< 1 Tahun", keputusan: "beli", saran: "Bau gosong dan dinamo hangus hitam. Harga gulung ulang hampir sama dengan beli baru." },
+                            "berisikgesek": { level: "ringan", levelLabel: "Ringan", part: "Posisi Cover Dinamo Bergeser", harga: 0, ongkos: 30000, hargaBaru: 250000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kipas berbunyi 'kriet-kriet' gesekan besi saat berputar." }
+                        }
+                    },
+                    "ricecooker": { 
+                        label: "Rice Cooker", 
+                        umurNormal: "4 - 6 Tahun",
+                        gejala: { 
+                            "basi": { level: "ringan", levelLabel: "Ringan", part: "Elemen Pemanas Tutup / Kabel Engsel", harga: 25000, ongkos: 40000, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Nasi cepat kuning, berair, atau bau basi dalam 12 jam. Kabel penghangat di engsel tutup putus." },
+                            "mentah": { level: "sedang", levelLabel: "Sedang", part: "Magnetic Switch / Termostat Bawah", harga: 35000, ongkos: 45000, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tombol otomatis 'Warm' naik sendiri padahal nasi masih mentah / berair." },
+                            "matitotal": { level: "ringan", levelLabel: "Ringan", part: "Thermofuse Rice Cooker", harga: 15000, ongkos: 40000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Colok listrik lampu indikator mati total tidak ada reaksi pemanasan sama sekali." },
+                            "lengketparah": { level: "ringan", levelLabel: "Ringan", part: "Panci Inner Pot Teflon Baru", harga: 75000, ongkos: 0, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Lapisan teflon panci sudah mengelupas dan terkelupas. Nasi jadi gosong menempel di bawah." },
+                            "airmeluber": { level: "ringan", levelLabel: "Ringan", part: "Katup Uap Tutup Hilang", harga: 15000, ongkos: 0, hargaBaru: 350000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Air tajin meluber keluar menyembur dari celah tutup saat memasak nasi." },
+                            "bodysetrum": { level: "ringan", levelLabel: "Ringan", part: "Kabel Grounding / Elemen Bocor", harga: 15000, ongkos: 40000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tersengat listrik saat memegang bodi stainless rice cooker." },
+                            "tombolmacet": { level: "ringan", levelLabel: "Ringan", part: "Per Pengunci Tutup Atas", harga: 20000, ongkos: 30000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tutup rice cooker tidak mau mengunci rapat saat ditekan ke bawah." },
+                            "bauplastik": { level: "ringan", levelLabel: "Ringan", part: "Kabel Internal Terbakar Tipis", harga: 20000, ongkos: 40000, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tercium bau plastik meleleh saat rice cooker aktif memasak." },
+                            "lampukelap": { level: "ringan", levelLabel: "Ringan", part: "Kabel Soket Indikator", harga: 10000, ongkos: 35000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Lampu indikator Cook/Warm kedip-kedip tidak stabil." },
+                            "pancibocor": { level: "ringan", levelLabel: "Ringan", part: "Inner Pot Penyok Berlubang", harga: 80000, ongkos: 0, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Panci bagian bawah berlubang kecil karena jatuh." }
+                        }
+                    },
+                    "blender": { 
+                        label: "Blender / Mixer", 
+                        umurNormal: "4 - 6 Tahun",
+                        gejala: { 
+                            "pisaumacet": { level: "ringan", levelLabel: "Ringan", part: "Gigi Karet Kopling / Bearing", harga: 20000, ongkos: 35000, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Mesin berdengung kencang tapi pisau di gelas blender tidak mau berputar." },
+                            "baugosong": { level: "sedang", levelLabel: "Sedang", part: "Arang Carbon Brush Dinamo", harga: 30000, ongkos: 50000, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Keluar bau sangit arang terbakar saat blender dipakai menghancurkan es batu." },
+                            "matitotal": { level: "ringan", levelLabel: "Ringan", part: "Saklar Kecepatan / Thermofuse", harga: 15000, ongkos: 40000, hargaBaru: 300000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Diputar ke angka 1, 2 atau Pulse tidak ada reaksi hidup sama sekali." },
+                            "bocorair": { level: "ringan", levelLabel: "Ringan", part: "Karet Seal Gelas Bawah", harga: 15000, ongkos: 0, hargaBaru: 300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Air jus merembes keluar dari dasar gelas blender membasahi mesin." },
+                            "asoleng": { level: "sedang", levelLabel: "Sedang", part: "As Pisau Gelas Oblak", harga: 25000, ongkos: 0, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Pisau blender goyang-goyang oblak dan berisik saat dipakai." },
+                            "tombolpatah": { level: "ringan", levelLabel: "Ringan", part: "Tombol Push Switch", harga: 15000, ongkos: 35000, hargaBaru: 300000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tombol tekan kecepatan patah di dalam." },
+                            "kabelgigit": { level: "ringan", levelLabel: "Ringan", part: "Kabel Power", harga: 15000, ongkos: 30000, hargaBaru: 300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Kabel terkelupas atau terpotong." },
+                            "getarkencang": { level: "ringan", levelLabel: "Ringan", part: "Karet Kaki Blender Lepas", harga: 10000, ongkos: 0, hargaBaru: 300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Blender berjalan sendiri loncat-loncat karena karet bawahnya hilang." },
+                            "dinamobakar": { level: "berat", levelLabel: "Berat", part: "Gulungan Dinamo Hangus", harga: 100000, ongkos: 50000, hargaBaru: 300000, umurSisa: "< 1 Tahun", keputusan: "beli", saran: "Dinamo terbakar total karena memaksa blender bahan keras tanpa air." },
+                            "gelaspecah": { level: "ringan", levelLabel: "Ringan", part: "Gelas Blender Baru (Plastik/Kaca)", harga: 75000, ongkos: 0, hargaBaru: 300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Gelas blender jatuh pecah. Beli sparepart gelasnya saja banyak di toko online." }
+                        }
+                    },
+                    "airpurifier": { 
+                        label: "Air Purifier", 
+                        umurNormal: "5 - 7 Tahun",
+                        gejala: { 
+                            "sensor_merah": { level: "ringan", levelLabel: "Ringan", part: "Sensor Debu / Ganti Filter HEPA", harga: 175000, ongkos: 0, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Indikator kualitas udara warna merah terus. Filter HEPA sudah jenuh penuh debu halus." },
+                            "kipasberisik": { level: "ringan", levelLabel: "Ringan", part: "Blower Fan Berdebu Tebal", harga: 0, ongkos: 50000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Kipas angin purifer berdengung kasar karena balingnya tertimbun debu tebal." },
+                            "matitotal": { level: "sedang", levelLabel: "Sedang", part: "Adaptor DC / Power Board", harga: 120000, ongkos: 50000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Colokan listrik dicolok tapi lampu indikator mati total." },
+                            "bauapek": { level: "ringan", levelLabel: "Ringan", part: "Filter Karbon Aktif Lembap", harga: 90000, ongkos: 0, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Keluar bau apek lembap saat alat dinyalakan. Filter karbon sudah menyerap kelembapan ruangan." },
+                            "touchpad": { level: "ringan", levelLabel: "Ringan", part: "Panel Touch Sensor", harga: 75000, ongkos: 50000, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tombol sentuh di atas air purifier tidak merespon saat disentuh." },
+                            "error_e1": { level: "sedang", levelLabel: "Sedang", part: "Switch Pengaman Pintu Filter", harga: 25000, ongkos: 50000, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Muncul kode error karena pintu penutup filter tidak terpasang dengan presisi." },
+                            "ionizer_mati": { level: "sedang", levelLabel: "Sedang", part: "Modul Generator Ion / Ozon", harga: 150000, ongkos: 75000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Fitur ionizer pembersih udara tidak berfungsi mengeluarkan sengatan ion." },
+                            "kabelkorslet": { level: "ringan", levelLabel: "Ringan", part: "Kabel Power", harga: 20000, ongkos: 40000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Kabel power leleh atau terkelupas." },
+                            "getarhebat": { level: "ringan", levelLabel: "Ringan", part: "Dudukan Blower Kendor", harga: 0, ongkos: 40000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Alat bergetar keras saat mode kecepatan tinggi." },
+                            "suplai_daya": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Regulator Board", harga: 45000, ongkos: 60000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Alat sering mati sendiri setelah 10 menit beroperasi." }
+                        }
+                    },
+                    "remotetv": { 
+                        label: "Remote TV/AC", 
+                        umurNormal: "3 - 5 Tahun",
+                        gejala: { 
+                            "tombolmati": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Karet Konduktif", harga: 10000, ongkos: 0, hargaBaru: 75000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Beberapa tombol harus ditekan sangat keras baru berfungsi. Bongkar dan bersihkan pakai minyak kayu putih." },
+                            "bateraikarat": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Per Baterai Karat", harga: 15000, ongkos: 0, hargaBaru: 75000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Baterai pernah bocor dan membuat per besi berkarat hijau. Sikat pakai cuka/alkohol." },
+                            "infraredmati": { level: "ringan", levelLabel: "Ringan", part: "Lampu LED Infrared Remote", harga: 15000, ongkos: 0, hargaBaru: 75000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Lampu IR remote tidak memancarkan sinar (cek lewat kamera HP kelihatan nyala/tidak)." },
+                            "tutupbaterai": { level: "ringan", levelLabel: "Ringan", part: "Tutup Baterai Hilang", harga: 15000, ongkos: 0, hargaBaru: 75000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Tutup baterai belakang patah/hilang (bisa dilakban atau beli case silikon)." },
+                            "patahtotal": { level: "ringan", levelLabel: "Ringan", part: "Ganti Remote Universal Baru", harga: 30000, ongkos: 0, hargaBaru: 75000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Remote patah jadi dua. Daripada diservis, beli remote universal baru jauh lebih murah." },
+                            "pencetganda": { level: "ringan", levelLabel: "Ringan", part: "Karbon Tombol Aus", harga: 15000, ongkos: 0, hargaBaru: 75000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Pencet volume sekali tapi naiknya langsung 5 tingkat." },
+                            "korsletbaterai": { level: "ringan", levelLabel: "Ringan", part: "Jalur Karatan PCB Remote", harga: 15000, ongkos: 0, hargaBaru: 75000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Baterai cepat sekali habis/hot dalam 2 hari." },
+                            "suaraaneh": { level: "ringan", levelLabel: "Ringan", part: "Komponen Lepas Dalam", harga: 0, ongkos: 0, hargaBaru: 75000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Ada suara 'kletek-kletek' komponen kristal osilator lepas di dalam." },
+                            "bluetooth_err": { level: "sedang", levelLabel: "Sedang", part: "Pairing Bluetooth Remote", harga: 0, ongkos: 0, hargaBaru: 75000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Remote voice command Bluetooth tidak terhubung ke Smart TV. Perlu pairing ulang." },
+                            "totalrusak": { level: "ringan", levelLabel: "Ringan", part: "Beli Remote Baru", harga: 45000, ongkos: 0, hargaBaru: 75000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Beli remote ori/kw di online shop langsung berfungsi tanpa setting." }
+                        }
+                    },
+                    "komporgas": { 
+                        label: "Kompor Gas", 
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: { 
+                            "apimerah": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Spuyer & Burner", harga: 15000, ongkos: 40000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Api kompor berwarna merah dan membuat pantat panci hitam legam. Spuyer tersumbat atau korosif." },
+                            "pemantikmati": { level: "ringan", levelLabel: "Ringan", part: "Pemantik Elektrik / Batu Baterai", harga: 15000, ongkos: 35000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Diputar cetak tapi tidak keluar percikan api pemantik (ganti baterai bawah kompor dulu)." },
+                            "gasbocor": { level: "berat", levelLabel: "Berat", part: "Kran Gas / Selang Regulator", harga: 45000, ongkos: 50000, hargaBaru: 350000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Tercium bau gas menyengat di sekitar kompor saat regulator terpasang. Bahaya kebakaran!" },
+                            "apikecil": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Jalur Spuyer Karat", harga: 15000, ongkos: 40000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Nyala api kompor sangat kecil meskipun gas masih penuh." },
+                            "tombolmacet": { level: "ringan", levelLabel: "Ringan", part: "As Kran Pemantik Macet", harga: 25000, ongkos: 50000, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Knob putaran kompor keras susah ditekan atau diputar." },
+                            "nyalapadampadam": { level: "ringan", levelLabel: "Ringan", part: "Kuningan Burner Melengkung", harga: 45000, ongkos: 0, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Api menyala tapi tiba-tiba padam sendiri saat dilepas." },
+                            "kacapecah": { level: "sedang", levelLabel: "Sedang", part: "Top Glass Kompor Tanam Baru", harga: 250000, ongkos: 75000, hargaBaru: 350000, umurSisa: "4 Tahun lagi", keputusan: "pertimbangkan", saran: "Kompor kaca tempered glass pecah berantakan karena panas berlebih atau benturan." },
+                            "bodykarat": { level: "ringan", levelLabel: "Ringan", part: "Cat Ulang / Alas Dudukan Panci", harga: 35000, ongkos: 0, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Dudukan tungku kompor keropos berkarat." },
+                            "bocorregulator": { level: "ringan", levelLabel: "Ringan", part: "Karet Seal Tabung Gas", harga: 5000, ongkos: 0, hargaBaru: 350000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Desis gas keluar dari leher tabung saat regulator dikunci." },
+                            "apitidakrata": { level: "ringan", levelLabel: "Ringan", part: "Tutup Burner / Crown Kotor", harga: 15000, ongkos: 0, hargaBaru: 350000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Nyala api kompor hanya setengah lingkaran (sebelah buntu kerak)." }
+                        }
+                    },
+                    "waterheater": { 
+                        label: "Water Heater", 
+                        umurNormal: "6 - 9 Tahun",
+                        gejala: { 
+                            "tdkpanas": { level: "sedang", levelLabel: "Sedang", part: "Thermostat / Elemen Heating", harga: 150000, ongkos: 100000, hargaBaru: 1600000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Air mengalir deras tapi tetap dingin membeku. Elemen pemanas putus atau thermostat trip." },
+                            "setrumair": { level: "berat", levelLabel: "Berat", part: "Elemen Pemanas Bocor ke Air", harga: 180000, ongkos: 120000, hargaBaru: 1600000, umurSisa: "< 1 Tahun", keputusan: "pertimbangkan", saran: "Bahaya! Air shower terasa menyetrum saat dipakai mandi. Segera matikan sekring listrik water heater!" },
+                            "bocorberat": { level: "berat", levelLabel: "Berat", part: "Tangki Internal Bocor / Karat", harga: 350000, ongkos: 250000, hargaBaru: 1600000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Air merembes menetes deras dari bodi water heater tangki listrik. Tangki sudah keropos dimakan usia." },
+                            "mcbjeglek": { level: "sedang", levelLabel: "Sedang", part: "Korsleting Elemen Pemanas", harga: 150000, ongkos: 100000, hargaBaru: 1600000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Setiap water heater dihidupkan, MCB rumah langsung turun jeglek." },
+                            "airkecil": { level: "ringan", levelLabel: "Ringan", part: "Filter Inlet / Kerak Kapur Menumpuk", harga: 25000, ongkos: 75000, hargaBaru: 1600000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Debit air panas yang keluar sangat kecil perlahan-lahan." },
+                            "lampuindikator": { level: "ringan", levelLabel: "Ringan", part: "Kabel Panel / Indikator Heater", harga: 30000, ongkos: 60000, hargaBaru: 1600000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air panas normal tapi lampu penunjuk kerja pemanas mati." },
+                            "berisikdidih": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Kerak Kapur Elemen", harga: 0, ongkos: 100000, hargaBaru: 1600000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Water heater mengeluarkan suara gemuruh seperti air mendidih berisik di dalam tangki." },
+                            "terlalupanas": { level: "sedang", levelLabel: "Sedang", part: "Thermostat Cut-Off Rusak", harga: 85000, ongkos: 80000, hargaBaru: 1600000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Suhu air panas mendidih melebihi batas settingan meskipun sudah dikecilkan." },
+                            "selangbocor": { level: "ringan", levelLabel: "Ringan", part: "Flexible Hose / Karet Seal", harga: 25000, ongkos: 40000, hargaBaru: 1600000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Air menetes dari sambungan selang fleksibel input/output." },
+                            "pemantikgas_mati": { level: "sedang", levelLabel: "Sedang", part: "Modul Pemantik Gas / Baterai", harga: 75000, ongkos: 75000, hargaBaru: 1600000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Khusus water heater gas: keran dibuka tapi api gas tidak menyala otomatis." }
+                        }
+                    },
+                    "hairdryer": { 
+                        label: "Hair Dryer", 
+                        umurNormal: "3 - 5 Tahun",
+                        gejala: { 
+                            "matisendiri": { level: "ringan", levelLabel: "Ringan", part: "Thermofuse Pengaman Panas", harga: 15000, ongkos: 40000, hargaBaru: 200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Hair dryer mati sendiri saat dipakai lama mode panas. Thermofuse bekerja mencegah terbakar." },
+                            "angindingin": { level: "ringan", levelLabel: "Ringan", part: "Elemen Pemanas (Heater Coil)", harga: 25000, ongkos: 40000, hargaBaru: 200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Kipas angin berputar kencang tapi udara yang keluar tidak ada hawa panasnya sama sekali." },
+                            "matitotal": { level: "ringan", levelLabel: "Ringan", part: "Kabel Power / Saklar Geser", harga: 15000, ongkos: 35000, hargaBaru: 200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Dicolok dan digeser saklar tidak ada reaksi hidup sama sekali." },
+                            "baugosong": { level: "ringan", levelLabel: "Ringan", part: "Debu Rambut Terbakar di Elemen", harga: 0, ongkos: 30000, hargaBaru: 200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Keluar bau gosong rambut terbakar dari lubang angin belakang." },
+                            "kipasseret": { level: "ringan", levelLabel: "Ringan", part: "As Blower Rambut Lilitan", harga: 10000, ongkos: 35000, hargaBaru: 200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Baling-baling hair dryer berputar lambat dan berisik karena tersangkut helaan rambut." },
+                            "saklarmacet": { level: "ringan", levelLabel: "Ringan", part: "Sliding Switch Kecepatan", harga: 15000, ongkos: 35000, hargaBaru: 200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tombol geser mode panas/dingin keras atau patah di dalam." },
+                            "kabelterkelupas": { level: "ringan", levelLabel: "Ringan", part: "Kabel Power Flexible", harga: 15000, ongkos: 30000, hargaBaru: 200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kabel dekat pangkal gagang sering terpelintir dan terkelupas." },
+                            "percikanapi": { level: "sedang", levelLabel: "Sedang", part: "Carbon Brush Dinamo Mini", harga: 25000, ongkos: 40000, hargaBaru: 200000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Terlihat kilatan api kecil di dalam lubang angin saat mesin menyala." },
+                            "getarkasar": { level: "ringan", levelLabel: "Ringan", part: "Blower Kipas Lepas As", harga: 10000, ongkos: 30000, hargaBaru: 200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Genggaman tangan terasa bergetar keras saat dihidupkan." },
+                            "totalrusak": { level: "ringan", levelLabel: "Ringan", part: "Beli Baru", harga: 50000, ongkos: 0, hargaBaru: 200000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Harga servis mendekati harga beli baru, lebih baik beli baru jika sudah berumur." }
+                        }
+                    }
+                }
+            },
+            "rumah": {
+                label: "Infrastruktur & Pipa",
+                icon: icons.rumah,
+                barang: {
+                    "pompa": { 
+                        label: "Mesin Pompa Air", 
+                        umurNormal: "6 - 10 Tahun",
+                        gejala: { 
+                            "cetakcetek": { level: "ringan", levelLabel: "Ringan", part: "Pressure Switch / Tabung Angin", harga: 45000, ongkos: 50000, hargaBaru: 750000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Mesin air berbunyi 'cetak-cetek' cepat padahal keran di rumah tertutup semua. Ada kebocoran halus atau otomatis rusak." },
+                            "dengungmati": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Pompa Air 8uF / 12uF", harga: 35000, ongkos: 60000, hargaBaru: 750000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Mesin berdengung kencang tapi air tidak mau naik. Kapasitor pompa melemah." },
+                            "pancingan": { level: "ringan", levelLabel: "Ringan", part: "Karet Klep Tusen / Tusen Klep Sumur", harga: 35000, ongkos: 75000, hargaBaru: 750000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air sering turun/masuk lagi ke sumur setiap kali mau dipakai, harus dipancing air dulu." },
+                            "airkecil": { level: "sedang", levelLabel: "Sedang", part: "Impeller / Kipas Sedot Aus", harga: 65000, ongkos: 100000, hargaBaru: 750000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Mesin hidup normal berputar, tapi debit air yang keluar sangat kecil." },
+                            "bocorbody": { level: "ringan", levelLabel: "Ringan", part: "Seal Mechanical / Karet Rumah Pompa", harga: 35000, ongkos: 75000, hargaBaru: 750000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air merembes keluar dari celah bodi tengah mesin pompa." },
+                            "suarabising": { level: "sedang", levelLabel: "Sedang", part: "Bearing / Laher Dinamo Pompa", harga: 50000, ongkos: 100000, hargaBaru: 750000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Pompa berbunyi menderu sangat berisik seperti helikopter saat dinyalakan." },
+                            "matitotal": { level: "sedang", levelLabel: "Sedang", part: "Thermofuse / Gulungan Dinamo", harga: 120000, ongkos: 80000, hargaBaru: 750000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Pompa mati total saat tersambar petir atau kerendam banjir." },
+                            "saklarmain": { level: "ringan", levelLabel: "Ringan", part: "Kabel / Stopkontak Pompa", harga: 20000, ongkos: 40000, hargaBaru: 750000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Colokan pompa meleleh karena panas beban listrik." },
+                            "masukangin": { level: "ringan", levelLabel: "Ringan", part: "Pipa Hisap Longgar / Seal Tape", harga: 15000, ongkos: 50000, hargaBaru: 750000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pompa menyedot angin karena ada sambungan pipa paralon bawah yang retak." },
+                            "terendam": { level: "berat", levelLabel: "Berat", part: "Rewinding Gulungan Total", harga: 250000, ongkos: 150000, hargaBaru: 750000, umurSisa: "2 Tahun lagi", keputusan: "pertimbangkan", saran: "Dinamo pompa terendam air banjir. Harus di-oven dan gulung ulang." }
+                        }
+                    },
+                    "toren": { 
+                        label: "Toren Air / Sumur", 
+                        umurNormal: "8 - 12 Tahun",
+                        gejala: { 
+                            "luber": { level: "ringan", levelLabel: "Ringan", part: "Pelampung Radar / Bola Pelampung", harga: 65000, ongkos: 75000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Air toren meluber banjir terus menerus. Radar otomatis pelampung rusak atau macet berkerak." },
+                            "bocortoren": { level: "sedang", levelLabel: "Sedang", part: "Penambalan Las Plastik / Drat Keluar", harga: 50000, ongkos: 75000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Bodi toren plastik retak/bocor menetes di bagian bawah." },
+                            "mampetkotor": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Kuras Sedimen Lumpur", harga: 0, ongkos: 150000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Dasar toren mengendap lumpur kuning/lumut tebal. Wajib dikuras total." },
+                            "dratbocor": { level: "ringan", levelLabel: "Ringan", part: "Fiting Sok Drat Luar/Dalam", harga: 25000, ongkos: 50000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Air merembes di lubang sambungan pipa keluar/masuk toren." },
+                            "tutupbocor": { level: "ringan", levelLabel: "Ringan", part: "Tutup Atas Toren Hilang", harga: 75000, ongkos: 0, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Tutup toren terbang angin, membuat jentik nyamuk dan daun masuk ke air." },
+                            "algaehijau": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Klorin / Lapisan Anti Alga", harga: 0, ongkos: 100000, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air di dalam toren berubah hijau berlumut karena tembus cahaya matahari (toren kualitas tipis)." },
+                            "strukturmiring": { level: "sedang", levelLabel: "Sedang", part: "Penyangga Besi / Menara Toren", harga: 200000, ongkos: 200000, hargaBaru: 1500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Kaki menara besi toren keropos berkarat, berbahaya bisa roboh." },
+                            "pelampungmacet": { level: "ringan", levelLabel: "Ringan", part: "Kawat Tali Pelampung Mekanik", harga: 20000, ongkos: 40000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pelampung mekanik gantung tersangkut lumut." },
+                            "pipapatah": { level: "ringan", levelLabel: "Ringan", part: "Pipa PVC Vent / Udara", harga: 25000, ongkos: 50000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pipa hawa toren patah tersenggol ranting pohon." },
+                            "torenpecah": { level: "berat", levelLabel: "Berat", part: "Ganti Toren Air Baru", harga: 1200000, ongkos: 200000, hargaBaru: 1500000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Bodi toren pecah besar karena usia plastik sudah getas terkena panas matahari bertahun-tahun." }
+                        }
+                    },
+                    "filterair": { 
+                        label: "Filter Air", 
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: { 
+                            "mampet": { level: "ringan", levelLabel: "Ringan", part: "Backwash / Ganti Media Pasir Silika", harga: 250000, ongkos: 150000, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Debit air yang keluar dari filter sangat kecil. Waktunya melakukan proses Backwash atau ganti media." },
+                            "airkuninglagi": { level: "ringan", levelLabel: "Ringan", part: "Karbon Aktif Jenuh / Mangan", harga: 200000, ongkos: 100000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Air sudah mulai bau besi dan kuning kembali. Media filter dalam tabung FRP sudah jenuh." },
+                            "bocortabung": { level: "sedang", levelLabel: "Sedang", part: "O-Ring Tabung FRP / Kepala Valve", harga: 45000, ongkos: 50000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Air merembes menetes dari leher kepala tabung filter FRP." },
+                            "valvemacet": { level: "ringan", levelLabel: "Ringan", part: "3-Way Valve Tuas Macet Kerak", harga: 75000, ongkos: 50000, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tuas pemutar valve filter (Filter-Backwash-Rinse) keras macet tidak bisa diputar." },
+                            "filtergantung": { level: "ringan", levelLabel: "Ringan", part: "Cartridge Spun Sedimen 10 Inch", harga: 20000, ongkos: 0, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Filter perumahan kecil (housing) cartridge berubah warna hitam legam penuh lumpur." },
+                            "dratbocor": { level: "ringan", levelLabel: "Ringan", part: "Seal Tape / Sok Drat PVC", harga: 15000, ongkos: 40000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Sambungan pipa ke tabung filter meneteskan air." },
+                            "pasirkeluar": { level: "ringan", levelLabel: "Ringan", part: "Strainer Bawah Tabung Pecah", harga: 65000, ongkos: 100000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Butiran pasir silika ikut terbawa arus keluar mengotori keran rumah." },
+                            "selangbuntu": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Pipa Buang Backwash", harga: 10000, ongkos: 40000, hargaBaru: 1500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Saluran pembuangan kotoran saat backwash tersumbat." },
+                            "tabungpecah": { level: "berat", levelLabel: "Berat", part: "Tabung FRP Retak / Jebol", harga: 650000, ongkos: 150000, hargaBaru: 1500000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Tabung fiber pecah karena tekanan pompa terlalu tinggi melebihi kapasitas." },
+                            "odorhilang": { level: "ringan", levelLabel: "Ringan", part: "Penambahan Karbon Aktif Baru", harga: 150000, ongkos: 75000, hargaBaru: 1500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air masih bau tanah/sulfur meski sudah difilter." }
+                        }
+                    },
+                    "toilet": { 
+                        label: "Toilet Duduk", 
+                        umurNormal: "8 - 15 Tahun",
+                        gejala: { 
+                            "airngalir": { level: "ringan", levelLabel: "Ringan", part: "Karet Flapper Silikon Tangki", harga: 25000, ongkos: 50000, hargaBaru: 1800000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air di mangkuk toilet terus mendesis mengalir perlahan. Karet penutup bawah tangki sudah getas." },
+                            "isairlama": { level: "ringan", levelLabel: "Ringan", part: "Pelampung Inlet Valve / Filter Kerak", harga: 45000, ongkos: 60000, hargaBaru: 1800000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air pengisian di dalam tangki kloset sangat lambat penuhnya." },
+                            "mampetotal": { level: "sedang", levelLabel: "Sedang", part: "Sedot WC / Pipa Siphon Tersumbat", harga: 0, ongkos: 250000, hargaBaru: 1800000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Kloset disiram air meluber naik ke atas tidak mau turun. Tersumbat benda asing/tisu." },
+                            "bocorbawah": { level: "sedang", levelLabel: "Sedang", part: "Wax Ring / Seal Karet Lantai", harga: 75000, ongkos: 120000, hargaBaru: 1800000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Air merembes keluar menggenang di lantai sekitar dasar kloset saat disiram." },
+                            "tombolflush": { level: "ringan", levelLabel: "Ringan", part: "Push Button Flush Set", harga: 45000, ongkos: 50000, hargaBaru: 1800000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tombol flush atas kloset ambles ke dalam atau tidak mau memompa air." },
+                            "tutupkloset": { level: "ringan", levelLabel: "Ringan", part: "Engsel Seat Cover Pelan", harga: 65000, ongkos: 30000, hargaBaru: 1800000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tutup dudukan kloset patah atau membanting keras saat ditutup." },
+                            "bautgoyang": { level: "ringan", levelLabel: "Ringan", part: "Baut Pengunci Tangki ke Mangkuk", harga: 20000, ongkos: 40000, hargaBaru: 1800000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Tangki kloset goyang-goyang oblak saat dipegang." },
+                            "retakbodi": { level: "berat", levelLabel: "Berat", part: "Ganti Kloset Keramik Baru", harga: 850000, ongkos: 250000, hargaBaru: 1800000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Bodi keramik kloset retak garis rambut memanjang, berisiko pecah total saat diduduki." },
+                            "baupesing": { level: "ringan", levelLabel: "Ringan", part: "Penggantian Semen Lantai / Silikon", harga: 20000, ongkos: 50000, hargaBaru: 1800000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Bau pesing menyengat di kamar mandi meski sudah disikat bersih." },
+                            "jetshowerbocor": { level: "ringan", levelLabel: "Ringan", part: "Selang Jet Shower / Seal Keran", harga: 35000, ongkos: 0, hargaBaru: 1800000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Kepala cebok jet shower meneteskan air terus." }
+                        }
+                    },
+                    "mcb": { 
+                        label: "MCB Listrik", 
+                        umurNormal: "10 - 15 Tahun",
+                        gejala: { 
+                            "seringjeglek": { level: "sedang", levelLabel: "Sedang", part: "MCB Rumah Lemah / Beban Lebih", harga: 50000, ongkos: 75000, hargaBaru: 150000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Listrik rumah sering turun/jeglek padahal alat elektronik yang dinyalakan sedikit. Perhatian: Ganti MCB di box sekring dalam rumah, BUKAN meteran PLN." },
+                            "bodiangus": { level: "berat", levelLabel: "Berat", part: "Terminal Kabel MCB Hangus", harga: 45000, ongkos: 80000, hargaBaru: 150000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Plastik bodi MCB meleleh dan tercium bau hangus. Baut klem kendor menyebabkan percikan api." },
+                            "tidakmaunkunci": { level: "sedang", levelLabel: "Sedang", part: "Internal Spring MCB Patah", harga: 45000, ongkos: 75000, hargaBaru: 150000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Tuas MCB dinaikkan ke atas tapi langsung turun sendiri tidak mau mengunci." },
+                            "korsletstop": { level: "ringan", levelLabel: "Ringan", part: "Perbaikan Stopkontak Korslet", harga: 25000, ongkos: 60000, hargaBaru: 150000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Ada stopkontak yang meletup hitam, membuat MCB rumah trip." },
+                            "kabelkendor": { level: "ringan", levelLabel: "Ringan", part: "Pengencangan Baut Busbar", harga: 0, ongkos: 50000, hargaBaru: 150000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "MCB sering berbunyi berdengung halus dan bodi terasa hangat." },
+                            "kapasitasKurang": { level: "sedang", levelLabel: "Sedang", part: "Upgrade Daya / Ganti MCB Sesuai Ampere", harga: 75000, ongkos: 75000, hargaBaru: 200000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Tambah alat rumah tangga baru (AC/Mesin Cuci) membuat MCB sering turun karena batas ampere terlampaui." },
+                            "karatanbox": { level: "ringan", levelLabel: "Ringan", part: "Box MCB Sekring Baru", harga: 45000, ongkos: 60000, hargaBaru: 150000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Box pelindung MCB pecah atau berkarat terkena rembesan air atap." },
+                            "stroomkejut": { level: "sedang", levelLabel: "Sedang", part: "Pemasangan ELCB / Anti Setrum", harga: 250000, ongkos: 100000, hargaBaru: 450000, umurSisa: "8 Tahun lagi", keputusan: "servis", saran: "Ingin proteksi ekstra agar keluarga tidak kesetrum? Pasang tambahan ELCB pengaman." },
+                            "kabelbakar": { level: "berat", levelLabel: "Berat", part: "Peremajaan Jalur Kabel Utama", harga: 200000, ongkos: 250000, hargaBaru: 1000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Kabel utama dalam tembok memanas dan meleleh karena usia bangunan tua." },
+                            "totalrusak": { level: "sedang", levelLabel: "Sedang", part: "Ganti 1 Set Rumah Sekring Baru", harga: 120000, ongkos: 100000, hargaBaru: 300000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Rumah sekring model lama keramik sudah getas rapuh, ganti box MCB SNI modern." }
+                        }
+                    },
+                    "keran": { 
+                        label: "Keran Air", 
+                        umurNormal: "4 - 7 Tahun",
+                        gejala: { 
+                            "keranbocor": { level: "ringan", levelLabel: "Ringan", part: "Seal Tape / Cartridge Keran", harga: 15000, ongkos: 30000, hargaBaru: 65000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air menetes terus dari mulut keran meski sudah ditutup rapat. Ganti seal tape atau cartridge di dalamnya." },
+                            "patahdrat": { level: "ringan", levelLabel: "Ringan", part: "Ekstraktor Drat Patah Dalam", harga: 25000, ongkos: 50000, hargaBaru: 65000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Leher keran patah dan tertinggal dratnya di dalam tembok. Ambil pakai alat pelepas drat." },
+                            "tuasmacet": { level: "ringan", levelLabel: "Ringan", part: "Cartridge Keran Mixer", harga: 35000, ongkos: 35000, hargaBaru: 65000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tuas keran angkat (mixer) keras sekali digerakkan ke atas/bawah." },
+                            "airkecil": { level: "ringan", levelLabel: "Ringan", part: "Aerator Filter Mulut Keran", harga: 10000, ongkos: 0, hargaBaru: 65000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Semburan air keran menyebar dan kecil karena ujung mulut keran tersumbat kerak kapur." },
+                            "bocorhingge": { level: "ringan", levelLabel: "Ringan", part: "Karet Seal Sambungan Fleksibel", harga: 15000, ongkos: 30000, hargaBaru: 65000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Air merembes di pangkal mur keran cuci piring." },
+                            "kerankaratan": { level: "ringan", levelLabel: "Ringan", part: "Ganti Keran Stainless Baru", harga: 55000, ongkos: 0, hargaBaru: 65000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Bodi keran kuningan/besi sudah keropos berkarat merah." },
+                            "selangbocor": { level: "ringan", levelLabel: "Ringan", part: "Selang Fleksibel Wastafel", harga: 25000, ongkos: 30000, hargaBaru: 75000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Selang fleksibel anyaman bawah wastafel bocor sembur." },
+                            "sifutmampet": { level: "ringan", levelLabel: "Ringan", part: "Leher Angsa Sifon Pembuangan", harga: 35000, ongkos: 40000, hargaBaru: 85000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Air cuci piring di wastafel lambat turun menggenang." },
+                            "tombolfilter": { level: "ringan", levelLabel: "Ringan", part: "Valve Keran Filter Meja", harga: 45000, ongkos: 30000, hargaBaru: 120000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Keran kecil RO meja dapur bocor menetes." },
+                            "totalganti": { level: "ringan", levelLabel: "Ringan", part: "Ganti Keran Baru", harga: 65000, ongkos: 30000, hargaBaru: 65000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Lebih baik beli keran baru berkualitas kuningan dibanding servis keran murah." }
+                        }
+                    },
+                    "pintu": { 
+                        label: "Pintu / Jendela", 
+                        umurNormal: "10 - 20 Tahun",
+                        gejala: { 
+                            "keropos": { level: "ringan", levelLabel: "Ringan", part: "Plat Galvalum Penambal Bawah", harga: 45000, ongkos: 75000, hargaBaru: 750000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Bagian bawah pintu kamar mandi keropos dimakan kelembapan. Tukang biasa nyuruh ganti 1 pintu utuh. Padahal cukup ditambal plat galvalum bawahnya!" },
+                            "seretlantai": { level: "ringan", levelLabel: "Ringan", part: "Ganjal Engsel / Serut Pintu", harga: 15000, ongkos: 60000, hargaBaru: 750000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pintu seret dan bergesekan dengan keramik lantai saat dibuka/tutup." },
+                            "engselpatah": { level: "ringan", levelLabel: "Ringan", part: "1 Set Engsel Pintu Stainless", harga: 35000, ongkos: 50000, hargaBaru: 750000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pintu melorot sebelah karena sekrup engsel lepas atau as engsel patah." },
+                            "kuncimacet": { level: "ringan", levelLabel: "Ringan", part: "Silinder Kunci Pintu (Mortise Lock)", harga: 75000, ongkos: 60000, hargaBaru: 750000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Anak kunci diputar keras atau nyangkut tidak mau membuka selot pintu." },
+                            "gagangpatah": { level: "ringan", levelLabel: "Ringan", part: "Handle Pintu Lever Set", harga: 85000, ongkos: 50000, hargaBaru: 750000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Gagang pegangan pintu lepas atau patah as dalamnya." },
+                            "rayap": { level: "sedang", levelLabel: "Sedang", part: "Suntik Anti Rayap & Dempul Kayu", harga: 65000, ongkos: 100000, hargaBaru: 750000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Daun pintu kayu keropos berbubuk dimakan koloni rayap." },
+                            "gejebakangin": { level: "ringan", levelLabel: "Ringan", part: "Door Stopper / Ganjal Pintu", harga: 20000, ongkos: 0, hargaBaru: 750000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pintu sering membanting dinding keras saat terkena tiupan angin." },
+                            "jendelaseret": { level: "ringan", levelLabel: "Ringan", part: "Rel Jendela Sliding / Roda", harga: 45000, ongkos: 60000, hargaBaru: 600000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Jendela aluminium geser (sliding) macet seret saat dibuka." },
+                            "kantilkunci": { level: "ringan", levelLabel: "Ringan", part: "Penyetelan Posisi Selot Kusen", harga: 0, ongkos: 50000, hargaBaru: 750000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pintu tidak mau mengunci pas ke lubang kusen." },
+                            "pinturayaptotal": { level: "berat", levelLabel: "Berat", part: "Ganti Daun Pintu PVC/Aluminium Baru", harga: 450000, ongkos: 150000, hargaBaru: 750000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Pintu sudah hancur total keropos dimakan rayap. Waktunya ganti pintu PVC/Aluminium anti rayap." }
+                        }
+                    },
+                    "atap": { 
+                        label: "Atap Rumah", 
+                        umurNormal: "10 - 15 Tahun",
+                        gejala: { 
+                            "bocor": { level: "sedang", levelLabel: "Sedang", part: "Cat Pelapis Aquaproof + Serat Fiber", harga: 85000, ongkos: 150000, hargaBaru: 5000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Plafon merembes tetesan air hujan. Jangan asal semen, lapis pakai cat waterproofing anti bocor + kain kassa fiber." },
+                            "gentenggeser": { level: "ringan", levelLabel: "Ringan", part: "Perbaikan Posisi Genteng / Nok", harga: 0, ongkos: 120000, hargaBaru: 5000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Ada genteng keramik/beton yang bergeser atau pecah tersapu angin kencang." },
+                            "plafonjebol": { level: "sedang", levelLabel: "Sedang", part: "Papan Gypsum / GRC Board Baru", harga: 75000, ongkos: 150000, hargaBaru: 1000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Plafon gypsum jebol melengkung bekas tetesan air hujan lama." },
+                            "bajausakarat": { level: "berat", levelLabel: "Berat", part: "Penyangga Rangka Atap Baja Ringan", harga: 350000, ongkos: 300000, hargaBaru: 15000000, umurSisa: "2 Tahun lagi", keputusan: "pertimbangkan", saran: "Rangka atap melendut atau berkarat di area rawan lembap." },
+                            "asbesbocor": { level: "ringan", levelLabel: "Ringan", part: "Semen Instan / Sealant Atap Asbes", harga: 45000, ongkos: 80000, hargaBaru: 1000000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Atap asbes retak rambut memicu bocor rintik." },
+                            "bocorwuwung": { level: "ringan", levelLabel: "Ringan", part: "Semen Wuwung / Nok Atap Baru", harga: 60000, ongkos: 100000, hargaBaru: 2000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Celahan semen wuwung atas genteng rontok." },
+                            "plafonturun": { level: "sedang", levelLabel: "Sedang", part: "Hollow Rangka Plafon Lepas", harga: 50000, ongkos: 100000, hargaBaru: 1000000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Plafon terlihat menggantung turun karena kawat gantungan putus." },
+                            "kurangcahaya": { level: "ringan", levelLabel: "Ringan", part: "Pemasangan Genteng Transparan", harga: 120000, ongkos: 100000, hargaBaru: 500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Ruangan tengah rumah gelap, pasang 1-2 lembar genteng kaca/transparan." },
+                            "kucingmasuk": { level: "ringan", levelLabel: "Ringan", part: "Kawat Nyamuk Ventilasi Atap", harga: 35000, ongkos: 50000, hargaBaru: 500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Kucing liar sering masuk ke plafon rumah lewat celah atap." },
+                            "renovasitotal": { level: "berat", levelLabel: "Berat", part: "Ganti Atap Total Rangka & Genteng", harga: 2500000, ongkos: 1500000, hargaBaru: 15000000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Atap kayu lapuk dimakan usia/rayap. Perlu bongkar pasang total rangka baru." }
+                        }
+                    }
+                }
+            },
+            "pribadi": {
+                label: "Pribadi & Olahraga",
+                icon: icons.pribadi,
+                barang: {
+                    "treadmill": { 
+                        label: "Treadmill Elektrik", 
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: { 
+                            "errorE01": { level: "ringan", levelLabel: "Ringan", part: "Sensor Kecepatan / Pelumas Karpet", harga: 45000, ongkos: 100000, hargaBaru: 4500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Muncul kode Error E01/E02 di layar. Sensor magnetik bergeser atau karpet kesat butuh pelumas silikon khusus." },
+                            "karpetmacet": { level: "sedang", levelLabel: "Sedang", part: "Belt Karpet Treadmill Aus", harga: 250000, ongkos: 100000, hargaBaru: 4500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Saat dinaiki, sabuk karpet treadmill berhenti berputar meski mesin berdengung." },
+                            "matitotal": { level: "sedang", levelLabel: "Sedang", part: "Fuse Pengaman / Inverter Board", harga: 85000, ongkos: 100000, hargaBaru: 4500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Layar panel mati total saat dicolok listrik rumah." },
+                            "inclinemacet": { level: "ringan", levelLabel: "Ringan", part: "Motor Incline / Naik Turun", harga: 175000, ongkos: 100000, hargaBaru: 4500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Fitur tanjakan otomatis (incline) tidak mau naik atau turun saat ditekan." },
+                            "suaraberisik": { level: "ringan", levelLabel: "Ringan", part: "Roller Bearing / Pelumasan Deck", harga: 65000, ongkos: 80000, hargaBaru: 4500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Treadmill berbunyi 'kletek-kletek' keras saat diinjak berlari." },
+                            "kuncisafety": { level: "ringan", levelLabel: "Ringan", part: "Magnetic Safety Key Hilang", harga: 35000, ongkos: 0, hargaBaru: 4500000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Layar menulis 'Safety Key' dan mesin enggan nyala karena klip magnet merah hilang." },
+                            "panelerror": { level: "sedang", levelLabel: "Sedang", part: "Kabel Fleksibel Panel Atas", harga: 75000, ongkos: 75000, hargaBaru: 4500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tombol speed di pegangan tangan tidak berfungsi." },
+                            "motorbakar": { level: "berat", levelLabel: "Berat", part: "Motor DC Treadmill Utama", harga: 750000, ongkos: 200000, hargaBaru: 4500000, umurSisa: "< 1 Tahun", keputusan: "pertimbangkan", saran: "Motor penggerak utama terbakar karena kelebihan beban berat pengguna." },
+                            "papanpatah": { level: "sedang", levelLabel: "Sedang", part: "Papan Alas Lari (Running Deck)", harga: 200000, ongkos: 100000, hargaBaru: 4500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Papan kayu pijakan tengah retak melengkung." },
+                            "totalrusak": { level: "berat", levelLabel: "Berat", part: "Ganti Treadmill Baru", harga: 2500000, ongkos: 0, hargaBaru: 4500000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Usia mesin sudah tua dan banyak sparepart elektronik yang getas." }
+                        }
+                    },
+                    "sepatu": { 
+                        label: "Sepatu / Sneaker", 
+                        umurNormal: "2 - 4 Tahun",
+                        gejala: { 
+                            "solelepas": { level: "ringan", levelLabel: "Ringan", part: "Jahit Sol Keliling Nilon", harga: 0, ongkos: 40000, hargaBaru: 500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Sol bawah sepatu menganga lepas. Wajib jahit sol keliling benang nilon, jangan cuma di-lem fox pinggirnya!" },
+                            "jeboltumit": { level: "ringan", levelLabel: "Ringan", part: "Tambal Inner Lining Tumit", harga: 15000, ongkos: 30000, hargaBaru: 500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bagian dalam tumit sepatu jebol, melukai kaki saat dipakai berjalan." },
+                            "solbawahaus": { level: "ringan", levelLabel: "Ringan", part: "Sol Tambahan Rubber Outsole", harga: 45000, ongkos: 50000, hargaBaru: 500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bagian bawah telapak sepatu licin aus karena sering dipakai jalan." },
+                            "upperrobek": { level: "ringan", levelLabel: "Ringan", part: "Tambal Sulam Bahan Kanvas/Suede", harga: 20000, ongkos: 40000, hargaBaru: 500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Kain atas (upper) sneaker sobek terkena gesekan benda tajam." },
+                            "talisepatu": { level: "ringan", levelLabel: "Ringan", part: "Ganti Tali Sepatu Baru", harga: 15000, ongkos: 0, hargaBaru: 500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tali sepatu putus atau kotor tidak bisa dicuci bersih." },
+                            "laundrykuning": { level: "ringan", levelLabel: "Ringan", part: "Deep Cleaning & Unyellowing", harga: 0, ongkos: 50000, hargaBaru: 500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Midsole putih sepatu berubah kuning kecoklatan (perlu unyellowing kimia)." },
+                            "insolepesok": { level: "ringan", levelLabel: "Ringan", part: "Ganti Insole Busa Empuk Baru", harga: 25000, ongkos: 0, hargaBaru: 500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bantalan dalam sepatu sudah tipis kempis membuat kaki sakit." },
+                            "eyeletrusak": { level: "ringan", levelLabel: "Ringan", part: "Mata Itik Besi Tali Sepatu", harga: 15000, ongkos: 30000, hargaBaru: 500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Lubang tempat tali sepatu besi copot lepas." },
+                            "waterproofrusak": { level: "ringan", levelLabel: "Ringan", part: "Spray Anti Air (Repellent)", harga: 45000, ongkos: 0, hargaBaru: 500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Sepatu kanvas mudah basah terkena cipratan hujan." },
+                            "kekecilan": { level: "ringan", levelLabel: "Ringan", part: "Alat Stretcher Pelebar Sepatu", harga: 30000, ongkos: 0, hargaBaru: 500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Sepatu terasa sempit di bagian depan jari kaki." }
+                        }
+                    },
+                    "tas": { 
+                        label: "Tas Ransel", 
+                        umurNormal: "3 - 6 Tahun",
+                        gejala: { 
+                            "resletingmacet": { level: "ringan", levelLabel: "Ringan", part: "Ganti Kepala Resleting YKK", harga: 15000, ongkos: 25000, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Resleting tas dibuka malah mangap terbuka lagi. Cukup ganti kepala resletingnya saja." },
+                            "taliambrol": { level: "ringan", levelLabel: "Ringan", part: "Jahit Perkuat Tali Gendongan", harga: 15000, ongkos: 35000, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tali gendongan ransel mau copot sebelah karena sering membawa beban berat laptop." },
+                            "furingsobek": { level: "ringan", levelLabel: "Ringan", part: "Ganti Kain Furing Dalam", harga: 35000, ongkos: 60000, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Kain lapisan dalam tas sobek-sobek tembus ke ruang utama." },
+                            "lapisankelupas": { level: "ringan", levelLabel: "Ringan", part: "Pembersihan Lapisan PU Getas", harga: 0, ongkos: 40000, hargaBaru: 300000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bagian dalam tas kulit sintetis lengket mengelupas seperti serbuk." },
+                            "gesperatah": { level: "ringan", levelLabel: "Ringan", part: "Ganti Buckle Plastik Klip", harga: 15000, ongkos: 20000, hargaBaru: 300000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Klip pengunci dada/pinggang tas ransel patah." },
+                            "basahbocor": { level: "ringan", levelLabel: "Ringan", part: "Rain Cover Tas Baru", harga: 35000, ongkos: 0, hargaBaru: 300000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Tas ransel tidak punya pelindung hujan (beli raincover terpisah)." },
+                            "bawahbolong": { level: "ringan", levelLabel: "Ringan", part: "Tambal Cordura / Kulit Sintetis", harga: 20000, ongkos: 40000, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Bagian dasar bawah tas bolong karena sering ditaruh di lantai kasar." },
+                            "kuncikoper": { level: "ringan", levelLabel: "Ringan", part: "Ganti Kombinasi Roda Koper", harga: 75000, ongkos: 50000, hargaBaru: 750000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Roda tas koper seret atau kunci nomor macet total." },
+                            "sakuanyar": { level: "ringan", levelLabel: "Ringan", part: "Perbaikan Jaring Samping Botol", harga: 15000, ongkos: 30000, hargaBaru: 300000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Karet saku tempat botol minum samping melar sobek." },
+                            "totaljebol": { level: "berat", levelLabel: "Berat", part: "Ganti Tas Baru", harga: 75000, ongkos: 0, hargaBaru: 300000, umurSisa: "0 Tahun", keputusan: "beli", saran: "Kain utama tas sudah lapuk robek di banyak tempat." }
+                        }
+                    }
+                }
+            }
+        };
+
+        // === 3. SINKRONISASI DATA DARI GOOGLE SHEETS (CSV + JSONP CORS BYPASS) ===
+        function normalizeKey(str) {
+            return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        function mergeRowsToDB(rows) {
+            let addedCount = 0;
+            rows.forEach((obj, idx) => {
+                const katRaw = (obj.kategori || '').trim();
+                const brgRaw = (obj.barangid || obj.barang || '').trim();
+                const gjlRaw = (obj.gejalaid || obj.gejala || '').trim();
+                const partRaw = (obj.komponen || obj.part || '').trim();
+
+                if (!katRaw || !brgRaw || (!gjlRaw && !partRaw)) return;
+
+                const katKey = normalizeKey(katRaw);
+                const brgKey = normalizeKey(brgRaw);
+
+                if (!db[katKey]) {
+                    db[katKey] = {
+                        label: katRaw.charAt(0).toUpperCase() + katRaw.slice(1),
+                        icon: icons[katKey] || icons.gejala,
+                        barang: {}
+                    };
+                }
+
+                if (!db[katKey].barang[brgKey]) {
+                    db[katKey].barang[brgKey] = {
+                        label: brgRaw.toUpperCase(),
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: {}
+                    };
+                }
+
+                const tingkatRaw = (obj.tingkat || 'Ringan').trim();
+                const level = tingkatRaw.toLowerCase();
+                const keputusan = obj.keputusan ? obj.keputusan.toLowerCase() :
+                                  (level === 'berat' ? 'beli' : (level === 'sedang' ? 'pertimbangkan' : 'servis'));
+
+                // Cek apakah gejala sudah ada (berdasarkan key atau teks gejala/komponen)
+                const gjlKey = normalizeKey(gjlRaw) || ('sheet_' + idx);
+                const existingGejala = db[katKey].barang[brgKey].gejala;
+                
+                // Cari kecocokan dengan data bawaan agar tidak duplikat jika namanya mirip
+                let targetKey = gjlKey;
+                for (const k in existingGejala) {
+                    if (k === gjlKey || (partRaw && existingGejala[k].part.toLowerCase() === partRaw.toLowerCase())) {
+                        targetKey = k;
+                        break;
+                    }
+                }
+
+                const prev = existingGejala[targetKey] || {};
+                existingGejala[targetKey] = {
+                    level: ['ringan', 'sedang', 'berat'].includes(level) ? level : 'ringan',
+                    levelLabel: tingkatRaw.charAt(0).toUpperCase() + tingkatRaw.slice(1),
+                    gejalaText: gjlRaw || prev.gejalaText || '',
+                    part: partRaw || prev.part || '-',
+                    harga: parseInt(String(obj.hargapart || obj.harga || '0').replace(/[^0-9]/g, '')) || 0,
+                    ongkos: parseInt(String(obj.ongkos || '0').replace(/[^0-9]/g, '')) || 0,
+                    hargaBaru: parseInt(String(obj.hargabaru || '0').replace(/[^0-9]/g, '')) || prev.hargaBaru || 0,
+                    umurSisa: (obj.umur || obj.umursisa || '').trim() || prev.umurSisa || '3 - 5 Tahun lagi',
+                    keputusan: keputusan,
+                    saran: (obj.saran || '').trim() || prev.saran || '-'
+                };
+                addedCount++;
+            });
+            return addedCount;
+        }
+
+        function parseCSVText(str) {
+            const arr = [];
+            let row = [''];
+            let col = 0;
+            let quote = false;
+            for (let c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                if (cc === '"') { quote = !quote; continue; }
+                if (!quote && cc === ',') { row[++col] = ''; continue; }
+                if (!quote && (cc === '\r' && nc === '\n' || cc === '\n')) {
+                    arr.push(row); row = ['']; col = 0; if (cc === '\r') c++; continue;
+                }
+                row[col] += cc;
+            }
+            if (row.length > 1 || row[0] !== '') arr.push(row);
+            if (arr.length < 2) return [];
+
+            const headers = arr[0].map(h => h.trim().toLowerCase());
+            return arr.slice(1).map(r => {
+                let obj = {};
+                headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : '');
+                return obj;
+            });
+        }
+
+        function updateSyncBadge(text, colorClass) {
+            const badge = document.getElementById('sync-badge');
+            if (badge) {
+                badge.innerText = text;
+                badge.className = `text-[10px] font-bold px-2 py-0.5 rounded border ${colorClass}`;
+            }
+        }
+
+        // JSONP Callback untuk Google Sheets (Menembus blokir CORS saat dibuka lokal/HP content://)
+        window.onGvizLoad = function(response) {
+            try {
+                if (!response || !response.table || !response.table.rows) return;
+                const cols = response.table.cols.map(c => (c.label || '').trim().toLowerCase());
+                const rawRows = response.table.rows;
+                
+                let headers = cols;
+                let dataStartIdx = 0;
+
+                // Jika header ada di baris pertama data
+                if (!headers[0] && rawRows.length > 0 && rawRows[0].c) {
+                    headers = rawRows[0].c.map(cell => cell && cell.v ? String(cell.v).trim().toLowerCase() : '');
+                    dataStartIdx = 1;
+                }
+
+                const parsedRows = [];
+                for (let r = dataStartIdx; r < rawRows.length; r++) {
+                    const cells = rawRows[r].c || [];
+                    let obj = {};
+                    headers.forEach((h, i) => {
+                        if (h) {
+                            const val = cells[i] && cells[i].v !== null && cells[i].v !== undefined ? String(cells[i].v).trim() : '';
+                            obj[h] = val;
+                        }
+                    });
+                    parsedRows.push(obj);
+                }
+
+                const count = mergeRowsToDB(parsedRows);
+                if (count > 0) {
+                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+                    updateSyncBadge("LIVE SHEETS SYNC", "bg-green-950 text-green-400 border-green-700");
+                }
+            } catch (err) {
+                console.warn("JSONP parse fallback:", err);
+                updateSyncBadge("LOCAL DB READY", "bg-zinc-800 text-gray-300 border-zinc-700");
+            }
+        };
+
+        function loadViaJSONP() {
+            const script = document.createElement('script');
+            script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:onGvizLoad`;
+            script.onerror = function() {
+                updateSyncBadge("OFFLINE DB READY", "bg-zinc-800 text-gray-300 border-zinc-700");
+            };
+            document.body.appendChild(script);
+        }
+
+        async function syncGoogleSheets() {
+            try {
+                const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                const text = await response.text();
+                const rows = parseCSVText(text);
+                const count = mergeRowsToDB(rows);
+                if (count > 0) {
+                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+                    updateSyncBadge("LIVE CSV SYNC", "bg-green-950 text-green-400 border-green-700");
+                    return;
+                }
+                throw new Error("CSV kosong");
+            } catch (e) {
+                // Jika fetch diblokir (misal dibuka dari content:// di Android), pakai JSONP
+                loadViaJSONP();
+            }
+        }
+
+        // === 4. UI INTERACTION & STATE ===
+        let selectedKat = null;
+        let selectedBrg = null;
+
+        const elRowKat = document.getElementById('row-kategori');
+        const elRowBrg = document.getElementById('row-barang');
+        const elRowGjl = document.getElementById('row-gejala');
+        const sectionBrg = document.getElementById('section-barang');
+        const sectionGjl = document.getElementById('section-gejala');
+        const resultBox = document.getElementById('result-box');
+
+        function renderCards(container, dataObj, onClickCallback, defaultIcon) {
+            container.innerHTML = '';
+            for (const key in dataObj) {
+                const item = dataObj[key];
+                const label = item.label || key;
+                const icon = item.icon || defaultIcon;
+                
+                const card = document.createElement('div');
+                card.className = 'nf-card shrink-0' + (selectedKat === key || selectedBrg === key ? ' active' : '');
+                card.id = `card-${key}`;
+                card.innerHTML = `
+                    <div class="nf-card-bg flex flex-col pt-4">
+                        ${icon}
+                    </div>
+                    <div class="nf-card-title">${label}</div>
+                `;
+                
+                card.onclick = () => onClickCallback(key, card);
+                container.appendChild(card);
+            }
+        }
+
+        function handleKatClick(key, cardElement) {
+            selectedKat = key;
+            selectedBrg = null;
+            
+            Array.from(elRowKat.children).forEach(c => c.classList.remove('active'));
+            cardElement.classList.add('active');
+            
+            sectionGjl.classList.add('hidden');
+            resultBox.classList.add('hidden');
+            sectionBrg.classList.remove('hidden');
+
+            renderCards(elRowBrg, db[key].barang, handleBrgClick, db[key].icon);
+            sectionBrg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function handleBrgClick(key, cardElement) {
+            selectedBrg = key;
+            
+            Array.from(elRowBrg.children).forEach(c => c.classList.remove('active'));
+            cardElement.classList.add('active');
+            
+            resultBox.classList.add('hidden');
+            sectionGjl.classList.remove('hidden');
+
+            const gejalaData = db[selectedKat].barang[key].gejala;
+            elRowGjl.innerHTML = '';
+            for (const gKey in gejalaData) {
+                const gObj = gejalaData[gKey];
+                const badgeColor = gObj.level === 'ringan' ? 'bg-green-600 text-white' : gObj.level === 'sedang' ? 'bg-amber-600 text-white' : 'bg-red-600 text-white';
+                const cardTitle = gObj.gejalaText ? `${gObj.gejalaText} (${gObj.part})` : gObj.part;
+                
+                const card = document.createElement('div');
+                card.className = 'nf-card shrink-0 flex flex-col justify-between p-3';
+                card.id = `card-${gKey}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start pointer-events-none">
+                        <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${badgeColor}">${gObj.levelLabel}</span>
+                        <span class="text-[10px] text-gray-400">Est: Rp ${(gObj.harga + gObj.ongkos).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="font-semibold text-xs mt-2 line-clamp-2 text-gray-200 pointer-events-none">${cardTitle}</div>
+                    <div class="text-[10px] text-orange-400 mt-1 pointer-events-none">Klik Analisa &rarr;</div>
+                `;
+                card.onclick = () => handleGjlClick(gKey, card);
+                elRowGjl.appendChild(card);
+            }
+
+            sectionGjl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function handleGjlClick(key, cardElement) {
+            Array.from(elRowGjl.children).forEach(c => c.classList.remove('active'));
+            cardElement.classList.add('active');
+            
+            const itemData = db[selectedKat].barang[selectedBrg];
+            const data = itemData.gejala[key];
+            const fmt = (num) => "Rp " + num.toLocaleString('id-ID');
+
+            document.getElementById('res-part').innerText = data.part;
+            document.getElementById('res-harga').innerText = data.harga > 0 ? fmt(data.harga) : "Gratis / Jasa Saja";
+            document.getElementById('res-ongkos').innerText = fmt(data.ongkos);
+            
+            const totalBiaya = data.harga + data.ongkos;
+            document.getElementById('res-total').innerText = fmt(totalBiaya);
+            document.getElementById('res-saran').innerText = data.saran;
+            
+            document.getElementById('res-beli').innerText = data.hargaBaru > 0 ? fmt(data.hargaBaru) : "Cek Toko / Online";
+            document.getElementById('res-umur').innerText = itemData.umurNormal || "5 - 8 Tahun";
+            document.getElementById('res-sisa').innerText = data.umurSisa || "3 - 5 Tahun lagi";
+
+            const keputusanEl = document.getElementById('res-keputusan');
+            if(data.keputusan === 'servis') {
+                keputusanEl.className = "bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                keputusanEl.innerText = "SANGAT DISARANKAN: SERVIS";
+            } else if(data.keputusan === 'pertimbangkan') {
+                keputusanEl.className = "bg-amber-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                keputusanEl.innerText = "PERTIMBANGKAN: Bandingkan Biaya";
+            } else {
+                keputusanEl.className = "bg-red-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                keputusanEl.innerText = "DIREKOMENDASIKAN: BELI BARU";
+            }
+
+            const searchKeyword = encodeURIComponent("Jasa servis " + itemData.label + " terdekat");
+            document.getElementById('btn-search-maps').href = `https://www.google.com/maps/search/${searchKeyword}`;
+
+            resultBox.classList.remove('hidden');
+            setTimeout(() => {
+                resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 150);
+        }
+
+        window.onload = function() {
+            initThreeJS();
+            // Render langsung dengan database lengkap bawaan agar instan tanpa jeda
+            renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+            // Lalu sinkronkan pembaruan dari Google Sheets secara real-time
+            syncGoogleSheets();
+        };
+    </script>
+</body>
+</html>
