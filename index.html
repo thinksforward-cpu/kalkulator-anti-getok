@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -74,22 +75,15 @@
             font-weight: 600; font-size: 14px;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
-        
-        /* Efek Blur & Siluet Hasil Analisa */
-        .blur-spoiler {
-            filter: blur(6px);
-            user-select: none;
-            pointer-events: none;
-            opacity: 0.35;
-        }
 
-        /* Styling GTA HUD Paywall Overlay */
-        .gta-hud-overlay {
-            background: rgba(10, 5, 5, 0.88);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 2px solid #ff1e1e;
-            box-shadow: 0 0 25px rgba(255, 30, 30, 0.4), inset 0 0 15px rgba(255, 30, 30, 0.2);
+        .censored-text {
+            font-family: monospace;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            background: rgba(229, 9, 20, 0.12);
+            border: 1px dashed rgba(229, 9, 20, 0.4);
+            padding: 1px 6px;
+            border-radius: 4px;
         }
 
         .hero-vignette { background: linear-gradient(to top, #141414 0%, transparent 100%); }
@@ -157,7 +151,7 @@
     <!-- APLIKASI UTAMA -->
     <div id="main-app">
         <!-- Hero Section -->
-        <div class="relative w-full h-[50vh] md:h-[65vh] flex items-end overflow-hidden">
+        <div class="relative w-full h-[50vh] md:h-[62vh] flex items-end overflow-hidden">
             <div id="canvas-container" class="absolute inset-0 z-0"></div>
             <div class="absolute inset-0 hero-vignette z-0"></div>
             <div class="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/70 to-transparent hidden md:block z-0"></div>
@@ -171,13 +165,29 @@
                     ANTI-GETOK <br><span class="text-4xl md:text-5xl text-gray-300">KALKULATOR</span>
                 </h1>
                 <p class="text-sm md:text-base text-gray-300 drop-shadow-md font-light mb-4 leading-relaxed max-w-lg">
-                    Pilih seri kerusakan perabotanmu di bawah ini. Algoritma Pak Nanbe akan membongkar rahasia estimasi harga komponen dan ongkos tukang yang paling wajar.
+                    Pilih lokasi provinsi dan seri kerusakan perabotanmu di bawah ini. Algoritma Pak Nanbe menghitung rentang harga komponen dan ongkos tukang wajar sesuai standar biaya hidup daerahmu.
                 </p>
             </div>
         </div>
 
+        <!-- Selector Provinsi -->
+        <div class="relative z-20 px-4 md:px-12 -mt-2 mb-8">
+            <div class="bg-[#1e1e1e] border border-zinc-800 rounded-lg p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+                <div>
+                    <label for="select-provinsi" class="text-xs font-bold uppercase tracking-wider text-[#E50914] block mb-1">
+                        📍 Lokasi Servis (Acuan Ongkos Tukang Daerah)
+                    </label>
+                    <p class="text-xs text-gray-400">Menyesuaikan tarif jasa berdasarkan kelayakan hidup provinsi (Single s/d Keluarga 3 Anak).</p>
+                </div>
+                <div class="w-full md:w-72">
+                    <select id="select-provinsi" onchange="handleProvinsiChange()" class="w-full bg-zinc-900 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-[#E50914]">
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- Slideshow Series Rows -->
-        <div class="relative z-20 px-4 md:px-12 -mt-4">
+        <div class="relative z-20 px-4 md:px-12">
             <!-- Row 1: Kategori -->
             <div class="mb-8">
                 <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 1: Kategori Masalah</h2>
@@ -196,71 +206,96 @@
                 <div id="row-gejala" class="carousel-container"></div>
             </div>
 
-            <!-- Result Box dengan GTA HUD Paywall Overlay -->
+            <!-- Result Box (Tampil langsung, sensor xxxxx jika terkunci, tombol buka di paling bawah) -->
             <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto relative">
                 
-                <!-- GTA HUD TOP BAR (Wanted Stars & Assets) -->
+                <!-- Top Bar -->
                 <div class="flex justify-between items-center mb-2 px-1 text-xs font-mono tracking-wider">
                     <div class="flex items-center gap-2">
                         <span class="text-red-500 font-bold tracking-widest text-sm">★ ★ ★ ☆ ☆</span>
-                        <span class="text-[10px] text-red-400 uppercase hidden sm:inline">CURRENT MISSION: <strong class="text-white">OPERATION: UNLOCK INTEL</strong></span>
+                        <span class="text-[10px] text-red-400 uppercase hidden sm:inline">ANALISA LOKAL: <strong id="hud-provinsi-label" class="text-white">-</strong></span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] text-gray-400 block uppercase">ESTIMATED ASSETS</span>
-                        <span class="text-emerald-400 font-bold text-sm tracking-widest">$1,540,000</span>
+                        <span class="text-[10px] text-gray-400 block uppercase">ACUAN UMP 2026</span>
+                        <span id="hud-ump-label" class="text-emerald-400 font-bold text-sm tracking-widest">-</span>
                     </div>
                 </div>
 
                 <div class="bg-[#0b0b0b] border-2 border-red-600 rounded-lg shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in relative">
-                    
-                    <!-- GTA HUD PAYWALL OVERLAY -->
-                    <div id="paywall-overlay" class="absolute inset-0 z-30 gta-hud-overlay flex flex-col items-center justify-center p-6 text-center animate-fade-in">
-                        
-                        <!-- Lock Icon Box -->
-                        <div class="bg-red-600 text-white p-3 rounded-lg shadow-lg mb-3 border border-red-400">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        </div>
 
-                        <div class="bg-red-950/80 border border-red-600/60 px-3 py-1 rounded text-[10px] font-mono tracking-widest text-red-400 mb-2 uppercase">
-                            [SECURE INTEL // CLASSIFIED]
-                        </div>
-
-                        <h3 class="text-4xl text-white cinematic-title tracking-wider mb-2 drop-shadow-[0_2px_10px_rgba(255,0,0,0.5)]">
-                            KONTEN TERKUNCI
-                        </h3>
-                        
-                        <!-- Box Teks Opsi 2 -->
-                        <div class="bg-black/70 border-l-4 border-red-600 p-4 max-w-lg mb-6 text-left rounded-r">
-                            <p class="text-gray-200 text-xs md:text-sm font-mono leading-relaxed">
-                                Hasil analisa lengkap, rincian komponen, dan estimasi biaya wajar di balik layar ini terkunci. Masukkan email terdaftar atau beli akses untuk mencairkan tampilan.
-                            </p>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                            <button onclick="openModalExplicit()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-5 rounded transition cinematic-title text-xl tracking-wider shadow-lg flex items-center justify-center gap-2 border border-red-400">
-                                🔑 BUKA DENGAN EMAIL
-                            </button>
-                            <a href="https://lynk.id/nanbe/z6x97m67pm49" target="_blank" class="flex-1 bg-slate-900 hover:bg-slate-800 text-cyan-400 font-bold py-3 px-5 rounded transition text-sm font-mono tracking-wider flex items-center justify-center gap-2 border border-cyan-500/60 shadow-lg">
-                                🚀 BELI VIA LYNK.ID
-                            </a>
-                        </div>
-
-                        <!-- Footer HUD (Press ESC to abort) -->
-                        <div class="w-full flex justify-between items-center mt-6 px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                            <span>PRESS [ESC] TO ABORT</span>
-                            <span>LOS SANTOS SYSTEMS v5.0</span>
-                        </div>
-                    </div>
-
-                    <!-- KONTEN HASIL ANALISA (DI-BLUR & TERBAYANG DI BELAKANG HUD) -->
-                    <div id="analysis-content" class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800 blur-spoiler overflow-hidden">
-                        <img src="305527.png" alt="Pak Nanbe Sniper Mode" class="absolute inset-0 w-full h-full object-cover opacity-90">
+                    <!-- KARTU KIRI: ILUSTRASI SVG PAK NANBE SNIPER MODE -->
+                    <div id="analysis-content" class="md:w-1/3 relative bg-gradient-to-b from-[#1a0b0b] via-[#121212] to-[#0a0a0a] min-h-[260px] flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 p-6 overflow-hidden">
                         <div class="absolute top-4 left-4 z-10">
-                            <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md">PAK NANBE (EXPERT)</span>
+                            <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md">PAK NANBE (SNIPER MODE)</span>
+                        </div>
+                        
+                        <!-- Inline SVG Pak Nanbe (Kucing Oren + Lonceng Kuning + Teropong Sniper Anti-Getok) -->
+                        <svg viewBox="0 0 260 260" class="w-52 h-52 drop-shadow-[0_10px_25px_rgba(229,9,20,0.25)]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <radialGradient id="scopeGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.35"/>
+                                    <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+                                </radialGradient>
+                            </defs>
+                            <!-- Latar Crosshair Radar -->
+                            <circle cx="130" cy="130" r="105" fill="url(#scopeGlow)" stroke="#ef4444" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
+                            <circle cx="130" cy="130" r="78" fill="none" stroke="#ef4444" stroke-width="1" opacity="0.3"/>
+                            <line x1="20" y1="130" x2="240" y2="130" stroke="#ef4444" stroke-width="0.8" opacity="0.3"/>
+                            <line x1="130" y1="20" x2="130" y2="240" stroke="#ef4444" stroke-width="0.8" opacity="0.3"/>
+
+                            <!-- Badan Onesie Kucing Oren -->
+                            <path d="M68 235 C68 182, 85 162, 130 162 C175 162, 192 182, 192 235 Z" fill="#f97316" stroke="#c2410c" stroke-width="2.5"/>
+                            <!-- Perut Putih -->
+                            <ellipse cx="130" cy="212" rx="34" ry="26" fill="#ffedd5"/>
+                            <!-- Tas Pinggang Oren -->
+                            <rect x="85" y="218" width="90" height="18" rx="8" fill="#ea580c" stroke="#9a3412" stroke-width="2"/>
+                            <rect x="122" y="222" width="16" height="10" rx="2" fill="#fed7aa"/>
+
+                            <!-- Kepala & Telinga Kucing Oren -->
+                            <polygon points="82,92 70,42 112,68" fill="#f97316" stroke="#c2410c" stroke-width="2.5" stroke-linejoin="round"/>
+                            <polygon points="84,84 77,54 104,70" fill="#fed7aa"/>
+                            <polygon points="178,92 190,42 148,68" fill="#f97316" stroke="#c2410c" stroke-width="2.5" stroke-linejoin="round"/>
+                            <polygon points="176,84 183,54 156,70" fill="#fed7aa"/>
+
+                            <!-- Hoodie Kepala -->
+                            <circle cx="130" cy="112" r="52" fill="#f97316" stroke="#c2410c" stroke-width="2.5"/>
+                            <!-- Wajah -->
+                            <ellipse cx="130" cy="118" rx="39" ry="34" fill="#fde68a"/>
+                            <!-- Mata Fokus (1 Mata Mengintip Scope, 1 Mata Serius) -->
+                            <circle cx="112" cy="112" r="5" fill="#18181b"/>
+                            <circle cx="110.5" cy="110" r="1.8" fill="#ffffff"/>
+                            <path d="M103 102 L120 106" stroke="#18181b" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Mata Kanan Tertutup Membidik -->
+                            <path d="M139 112 Q148 107 156 112" fill="none" stroke="#18181b" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Hidung & Mulut Serius -->
+                            <polygon points="127,120 133,120 130,124" fill="#f43f5e"/>
+                            <path d="M122 131 Q130 128 138 131" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round"/>
+
+                            <!-- Lonceng Kuning Khas Pak Nanbe -->
+                            <path d="M98 164 Q130 174 162 164" fill="none" stroke="#dc2626" stroke-width="5" stroke-linecap="round"/>
+                            <circle cx="130" cy="173" r="9.5" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+                            <circle cx="130" cy="175" r="2" fill="#713f12"/>
+                            <line x1="130" y1="175" x2="130" y2="181" stroke="#713f12" stroke-width="1.5"/>
+
+                            <!-- Senapan / Teropong Bidik Anti-Getok -->
+                            <rect x="35" y="138" width="165" height="12" rx="4" fill="#27272a" stroke="#52525b" stroke-width="2"/>
+                            <rect x="185" y="135" width="42" height="18" rx="3" fill="#18181b" stroke="#71717a" stroke-width="2"/>
+                            <!-- Scope Atas -->
+                            <rect x="92" y="122" width="66" height="14" rx="4" fill="#18181b" stroke="#ef4444" stroke-width="2"/>
+                            <circle cx="158" cy="129" r="7" fill="#ef4444" opacity="0.85"/>
+                            <circle cx="156" cy="127" r="2" fill="#ffffff"/>
+                            <!-- Tangan Memegang -->
+                            <circle cx="105" cy="150" r="10" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+                            <circle cx="155" cy="150" r="10" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+                        </svg>
+
+                        <div class="text-center mt-2">
+                            <span class="text-[11px] font-mono text-red-400 tracking-widest uppercase">TARGET: HARGA WAJAR</span>
                         </div>
                     </div>
 
-                    <div id="analysis-details" class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818] blur-spoiler">
+                    <!-- KARTU KANAN: DETAIL ANALISA + SENSOR XXXXX -->
+                    <div id="analysis-details" class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818]">
                         <div class="flex flex-wrap items-center justify-between mb-5 gap-3">
                             <div class="flex gap-2 flex-wrap items-center">
                                 <span id="res-keputusan" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider">SANGAT DISARANKAN: SERVIS</span>
@@ -273,36 +308,79 @@
                             </div>
                         </div>
 
-                        <div class="space-y-4 mb-6 text-sm md:text-base">
-                            <div class="flex justify-between border-b border-zinc-700 pb-3">
+                        <div class="space-y-4 mb-5 text-sm md:text-base">
+                            <div class="flex justify-between items-center border-b border-zinc-700 pb-3 gap-3">
                                 <span class="text-gray-400">Komponen Bermasalah</span> 
                                 <span id="res-part" class="text-white font-semibold text-right max-w-[60%] text-orange-400"></span>
                             </div>
-                            <div class="flex justify-between border-b border-zinc-700 pb-3">
-                                <span class="text-gray-400">Harga Komponen (Estimasi)</span> 
+                            <div class="flex justify-between items-center border-b border-zinc-700 pb-3 gap-3">
+                                <span class="text-gray-400">Rentang Harga Komponen</span> 
                                 <span id="res-harga" class="text-white font-semibold text-right"></span>
                             </div>
-                            <div class="flex justify-between border-b border-zinc-700 pb-3">
-                                <span class="text-gray-400">Ongkos Tukang (Wajar)</span> 
+                            <div class="flex justify-between items-center border-b border-zinc-700 pb-3 gap-3">
+                                <div>
+                                    <span class="text-gray-400 block">Rentang Ongkos Tukang Wajar</span>
+                                    <span id="res-jasa-meta" class="text-[11px] text-gray-500"></span>
+                                </div>
                                 <span id="res-ongkos" class="text-white font-semibold text-right"></span>
                             </div>
-                            <div class="flex justify-between pt-2 items-end">
-                                <span class="text-lg md:text-xl font-bold text-white">Total Maksimal</span> 
-                                <span id="res-total" class="text-2xl md:text-4xl font-bold text-[#E50914] text-right cinematic-title"></span>
+                            <div class="flex justify-between pt-2 items-end gap-3">
+                                <span class="text-lg md:text-xl font-bold text-white">Rentang Total Wajar</span> 
+                                <span id="res-total" class="text-xl md:text-3xl font-bold text-[#E50914] text-right cinematic-title"></span>
                             </div>
                         </div>
 
-                        <div class="bg-zinc-800/50 p-4 rounded-md border-l-4 border-orange-500 mb-4">
+                        <!-- PANEL TRANSPARANSI FORMULASI PENGHITUNGAN -->
+                        <div class="bg-zinc-900/90 border border-zinc-700 rounded-md p-4 mb-5 text-xs">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-emerald-400 uppercase tracking-wider">📐 Transparansi Formulasi Pak Nanbe</span>
+                                <span id="formula-provinsi-badge" class="text-[10px] bg-zinc-800 text-gray-300 px-2 py-0.5 rounded border border-zinc-700"></span>
+                            </div>
+                            <p class="text-gray-300 leading-relaxed mb-2">
+                                Ongkos jasa dihitung dari kelayakan biaya hidup provinsi (<strong class="text-white">Batas Bawah = Single / 1× UMP 2026</strong>, <strong class="text-white">Batas Atas = Keluarga 3 Anak / 2,2× UMP 2026</strong>) dibagi <strong class="text-white">110 jam kerja produktif/bulan</strong>, lalu dikalikan bobot pekerjaan dan biaya kunjungan.
+                            </p>
+                            <div class="bg-black/50 rounded p-2.5 font-mono text-[11px] text-gray-300 space-y-1 border border-zinc-800" id="formula-breakdown">
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-2">
+                                *Catatan: Belum termasuk biaya akses sulit (misal unit outdoor AC di lantai tinggi tanpa balkon). Acuan UMP 2026 merujuk penetapan resmi Kemnaker.
+                            </p>
+                        </div>
+
+                        <div class="bg-zinc-800/50 p-4 rounded-md border-l-4 border-orange-500 mb-5">
                             <p class="text-orange-400 font-bold mb-1 text-xs uppercase tracking-wider">Pesan Sponsor (Pak Nanbe):</p>
                             <p class="text-gray-200 text-sm leading-relaxed font-light" id="res-saran"></p>
                         </div>
 
-                        <a id="btn-search-maps" href="#" target="_blank" class="w-full block text-center bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 px-4 rounded transition duration-300 cinematic-title text-xl tracking-wider">
-                            <span class="flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                Cari Jasa Servis Terdekat di Maps
-                            </span>
-                        </a>
+                        <!-- TOMBOL AKSI (MUNCUL SETELAH TERBUKA) -->
+                        <div id="unlocked-actions" class="hidden flex flex-col sm:flex-row gap-3">
+                            <a id="btn-search-shopee" href="#" target="_blank" rel="noopener noreferrer" class="hidden flex-1 text-center bg-[#ee4d2d] hover:bg-[#d73211] text-white font-bold py-3 px-4 rounded transition duration-300 cinematic-title text-xl tracking-wider">
+                                🛒 Cek Harga Komponen di Shopee
+                            </a>
+                            <a id="btn-search-maps" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 text-center bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 px-4 rounded transition duration-300 cinematic-title text-xl tracking-wider">
+                                <span class="flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    Cari Jasa Servis Terdekat
+                                </span>
+                            </a>
+                        </div>
+
+                        <!-- PAYWALL DI PALING BAWAH (MUNCUL SAAT TERKUNCI) -->
+                        <div id="paywall-bottom-box" class="bg-red-950/40 border border-red-600/70 rounded-lg p-5 text-center mt-2">
+                            <div class="inline-flex items-center gap-2 bg-red-600/20 border border-red-500/50 text-red-300 text-[10px] font-mono uppercase tracking-widest px-3 py-1 rounded mb-2">
+                                🔒 Data Bertanda xxxxx Masih Terkunci
+                            </div>
+                            <p class="text-gray-200 text-xs md:text-sm mb-4">
+                                Masukkan email terdaftar atau beli akses instan untuk membuka angka rupiah, nama komponen, dan tips nego Pak Nanbe.
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <button onclick="openModalExplicit()" class="flex-1 bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 px-5 rounded transition cinematic-title text-xl tracking-wider shadow-lg flex items-center justify-center gap-2 border border-red-400">
+                                    🔑 BUKA DENGAN EMAIL
+                                </button>
+                                <a href="https://lynk.id/nanbe/z6x97m67pm49" target="_blank" class="flex-1 bg-slate-900 hover:bg-slate-800 text-cyan-400 font-bold py-3 px-5 rounded transition text-sm font-mono tracking-wider flex items-center justify-center gap-2 border border-cyan-500/60 shadow-lg">
+                                    🚀 BELI VIA LYNK.ID
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -315,175 +393,87 @@
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQpG2blnISqZ66WXTq7WTpbSoeamPXPoFKcwKV2SAICOeV-7jUpCN4Bsn8PeUjXyVXys-9V_2why6L0/pub?gid=0&single=true&output=csv";
         const SHEET_ID = "1zQqtXfcD6e5jFc5eWbPUJSxQkqeiTOJbnk76tPyMJHs";
 
+        // Data UMP 2026 Resmi 38 Provinsi Indonesia (Sumber: Kemnaker / Kompas.com)
+        const PROVINCE_DATA = [
+            { nama: "DKI Jakarta", ump: 5729876 },
+            { nama: "Jawa Barat", ump: 2317601 },
+            { nama: "Banten", ump: 3100881 },
+            { nama: "Jawa Tengah", ump: 2327386 },
+            { nama: "DI Yogyakarta", ump: 2417495 },
+            { nama: "Jawa Timur", ump: 2446880 },
+            { nama: "Bali", ump: 3207459 },
+            { nama: "Aceh", ump: 3932554 },
+            { nama: "Sumatera Utara", ump: 3228949 },
+            { nama: "Sumatera Barat", ump: 3182955 },
+            { nama: "Riau", ump: 3780495 },
+            { nama: "Kepulauan Riau", ump: 3879520 },
+            { nama: "Jambi", ump: 3471497 },
+            { nama: "Sumatera Selatan", ump: 3942963 },
+            { nama: "Kep. Bangka Belitung", ump: 4035000 },
+            { nama: "Bengkulu", ump: 2827250 },
+            { nama: "Lampung", ump: 3047734 },
+            { nama: "Nusa Tenggara Barat", ump: 2673861 },
+            { nama: "Nusa Tenggara Timur", ump: 2455898 },
+            { nama: "Kalimantan Barat", ump: 3054552 },
+            { nama: "Kalimantan Tengah", ump: 3686138 },
+            { nama: "Kalimantan Selatan", ump: 3725000 },
+            { nama: "Kalimantan Timur", ump: 3762431 },
+            { nama: "Kalimantan Utara", ump: 3775243 },
+            { nama: "Sulawesi Utara", ump: 4002630 },
+            { nama: "Sulawesi Tengah", ump: 3179565 },
+            { nama: "Sulawesi Selatan", ump: 3921088 },
+            { nama: "Sulawesi Tenggara", ump: 3306496 },
+            { nama: "Gorontalo", ump: 3405144 },
+            { nama: "Sulawesi Barat", ump: 3315934 },
+            { nama: "Maluku", ump: 3334490 },
+            { nama: "Maluku Utara", ump: 3510240 },
+            { nama: "Papua", ump: 4436283 },
+            { nama: "Papua Barat", ump: 3841000 },
+            { nama: "Papua Barat Daya", ump: 3766000 },
+            { nama: "Papua Tengah", ump: 4285848 },
+            { nama: "Papua Selatan", ump: 4508850 },
+            { nama: "Papua Pegunungan", ump: 4508714 }
+        ];
+
+        let isUnlocked = false;
         let pendingGjlKey = null;
         let pendingCardEl = null;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initThreeJS();
-            renderCards(elRowKat, db, handleKatClick, icons.elektronik);
-            syncGoogleSheets();
-            checkSavedSessionUI();
-        });
-
-        function checkSavedSessionUI() {
-            const saved = localStorage.getItem("antigetok_email");
-            if(saved) {
-                document.getElementById('user-status').innerText = `👤 ${saved}`;
-                document.getElementById('btn-logout').classList.remove('hidden');
-            }
-        }
-
-        async function submitVerifikasi() {
-            const email = document.getElementById("emailInput").value.trim().toLowerCase();
-            const statusBox = document.getElementById("statusBox");
-
-            if (!email) {
-                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
-                statusBox.innerText = "❌ Mohon masukkan alamat email Anda!";
-                statusBox.classList.remove("hidden");
-                return;
-            }
-
-            statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-amber-950 text-amber-400 border border-amber-800";
-            statusBox.innerText = "⏳ Sedang mencocokkan email ke server...";
-            statusBox.classList.remove("hidden");
-
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email: email })
-                });
-
-                const result = await response.json();
-
-                if (result.lunas === true) {
-                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-green-950 text-green-400 border border-green-800";
-                    statusBox.innerText = "✅ Verifikasi Berhasil! Membuka intel...";
-                    
-                    setTimeout(() => {
-                        localStorage.setItem("antigetok_email", email);
-                        closeModal();
-                        checkSavedSessionUI();
-                        unlockSpoiler();
-                        if (pendingGjlKey && pendingCardEl) {
-                            executeShowResult(pendingGjlKey, pendingCardEl);
-                        }
-                    }, 700);
-
-                } else {
-                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
-                    statusBox.innerText = "❌ Email belum terdaftar atau belum lunas. Silakan beli via Lynk.id.";
-                }
-            } catch (err) {
-                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
-                statusBox.innerText = "❌ Gagal terhubung ke Cloudflare Worker.";
-            }
-        }
-
-        function unlockSpoiler() {
-            document.getElementById('paywall-overlay').classList.add('hidden');
-            document.getElementById('analysis-content').classList.remove('blur-spoiler');
-            document.getElementById('analysis-details').classList.remove('blur-spoiler');
-        }
-
-        function lockSpoiler() {
-            document.getElementById('paywall-overlay').classList.remove('hidden');
-            document.getElementById('analysis-content').classList.add('blur-spoiler');
-            document.getElementById('analysis-details').classList.add('blur-spoiler');
-        }
-
-        function openModalExplicit() {
-            document.getElementById("auth-modal").classList.remove("hidden");
-        }
-
-        function closeModal() {
-            document.getElementById("auth-modal").classList.add("hidden");
-            document.getElementById("statusBox").classList.add("hidden");
-            document.getElementById("emailInput").value = "";
-        }
-
-        function logoutSession() {
-            localStorage.removeItem("antigetok_email");
-            document.getElementById('user-status').innerText = "";
-            document.getElementById('btn-logout').classList.add('hidden');
-            lockSpoiler();
-            alert("Sesi email telah dihapus. Intel kembali terkunci.");
-        }
-
-        function initThreeJS() {
-            const container = document.getElementById('canvas-container');
-            if(!container || container.children.length > 0) return;
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.z = 30;
-            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(renderer.domElement);
-
-            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-            const material = new THREE.MeshBasicMaterial({ color: 0xE50914, wireframe: true, transparent: true, opacity: 0.15 });
-            const torusKnot = new THREE.Mesh(geometry, material);
-            scene.add(torusKnot);
-
-            const particlesGeometry = new THREE.BufferGeometry();
-            const particlesCount = 200;
-            const posArray = new Float32Array(particlesCount * 3);
-            for(let i = 0; i < particlesCount * 3; i++) posArray[i] = (Math.random() - 0.5) * 60;
-            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const particlesMaterial = new THREE.PointsMaterial({ size: 0.2, color: 0xffffff, transparent: true, opacity: 0.4 });
-            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-            scene.add(particlesMesh);
-
-            function animate() {
-                requestAnimationFrame(animate);
-                torusKnot.rotation.x += 0.002;
-                torusKnot.rotation.y += 0.003;
-                particlesMesh.rotation.y -= 0.001;
-                renderer.render(scene, camera);
-            }
-            window.addEventListener('resize', () => {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            });
-            animate();
-        }
 
         const icons = {
             elektronik: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><circle cx="12" cy="10" r="2" class="motion-pulse" fill="#E50914" stroke="none"/></svg>`,
             gadget: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`,
             furnitur: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>`,
+            rumah: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>`,
+            kendaraan: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`,
             pakaian: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>`,
             hobi: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path></svg>`,
             gejala: `<svg class="w-12 h-12 text-[#E50914] motion-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
         };
 
-        // DATABASE LENGKAP 100 ITEM (KATEGORI A SAMPAI E)
+        // DATABASE LOKAL
         const db = {
             "elektronik": {
                 label: "A. Elektronik & Dapur Besar",
                 icon: icons.elektronik,
                 barang: {
-                    "kulkas": { label: "Kulkas / Lemari Es", umurNormal: "8 - 12 Tahun", gejala: { "isifreon": { level: "berat", levelLabel: "Berat", part: "Kompresor & Freon R134a", harga: 650000, ongkos: 200000, hargaBaru: 3500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Pastikan teknisi melakukan vakum total sebelum isi freon agar tidak mampet." } } },
-                    "mesincuci": { label: "Mesin Cuci", umurNormal: "6 - 10 Tahun", gejala: { "dinamogear": { level: "berat", levelLabel: "Berat", part: "Dinamo Pencuci / Gearbox", harga: 250000, ongkos: 100000, hargaBaru: 2200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti seal as sekaligus agar air tidak merembes kembali ke dinamo baru." } } },
-                    "ac": { label: "AC (Air Conditioner)", umurNormal: "8 - 10 Tahun", gejala: { "cucifreon": { level: "sedang", levelLabel: "Sedang", part: "Freon R32/R410a & Jasa Cuci", harga: 150000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Cek titik kebocoran pada pipa sambungan sebelum isi ulang freon." } } },
-                    "tvled": { label: "Televisi LED / Smart TV", umurNormal: "5 - 8 Tahun", gejala: { "backlight": { level: "berat", levelLabel: "Berat", part: "LED Backlight Strip", harga: 200000, ongkos: 150000, hargaBaru: 2500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Turunkan setting brightness TV ke 70% agar lampu backlight awet dan tahan lama." } } },
-                    "pompaair": { label: "Pompa Air Listrik", umurNormal: "5 - 8 Tahun", gejala: { "gulungkapasitor": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor & Seal Pompa", harga: 65000, ongkos: 75000, hargaBaru: 600000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti seal mechanical agar air tidak masuk ke lilitan dinamo." } } },
+                    "kulkas": { label: "Kulkas / Lemari Es", umurNormal: "8 - 12 Tahun", gejala: { "isifreon": { level: "berat", levelLabel: "Berat", part: "Kompresor & Freon R134a", harga: 650000, partMin: 120000, partMax: 750000, ongkos: 200000, jamKerja: 2, sertifikasi: "Ya", kelangkaan: "Menengah", tipeServis: "Home Visit", hargaBaru: 3500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Pastikan teknisi melakukan vakum total sebelum isi freon agar tidak mampet." } } },
+                    "mesincuci": { label: "Mesin Cuci", umurNormal: "6 - 10 Tahun", gejala: { "dinamogear": { level: "berat", levelLabel: "Berat", part: "Dinamo Pencuci / Gearbox", harga: 250000, partMin: 150000, partMax: 320000, ongkos: 100000, jamKerja: 1.5, sertifikasi: "Tidak", kelangkaan: "Menengah", tipeServis: "Home Visit", hargaBaru: 2200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti seal as sekaligus agar air tidak merembes kembali ke dinamo baru." } } },
+                    "ac": { label: "AC (Air Conditioner)", umurNormal: "8 - 10 Tahun", gejala: { "cucifreon": { level: "sedang", levelLabel: "Sedang", part: "Freon R32/R410a & Jasa Cuci", harga: 150000, partMin: 100000, partMax: 200000, ongkos: 100000, jamKerja: 1, sertifikasi: "Ya", kelangkaan: "Menengah", tipeServis: "Home Visit", hargaBaru: 3500000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Cek titik kebocoran pada pipa sambungan sebelum isi ulang freon." } } },
+                    "tvled": { label: "Televisi LED / Smart TV", umurNormal: "5 - 8 Tahun", gejala: { "backlight": { level: "berat", levelLabel: "Berat", part: "LED Backlight Strip", harga: 200000, partMin: 100000, partMax: 250000, ongkos: 150000, jamKerja: 1.5, sertifikasi: "Tidak", kelangkaan: "Menengah", tipeServis: "Drop-off", hargaBaru: 2500000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Turunkan setting brightness TV ke 70% agar lampu backlight awet dan tahan lama." } } },
+                    "pompaair": { label: "Pompa Air Listrik", umurNormal: "5 - 8 Tahun", gejala: { "gulungkapasitor": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor & Seal Pompa", harga: 65000, partMin: 40000, partMax: 90000, ongkos: 75000, jamKerja: 1, sertifikasi: "Tidak", kelangkaan: "Umum", tipeServis: "Home Visit", hargaBaru: 600000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti seal mechanical agar air tidak masuk ke lilitan dinamo." } } },
                     "microwave": { label: "Microwave", umurNormal: "6 - 9 Tahun", gejala: { "magnetron": { level: "berat", levelLabel: "Berat", part: "Tabung Magnetron", harga: 180000, ongkos: 75000, hargaBaru: 1200000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Jangan panaskan wadah logam di dalam microwave untuk mencegah kerusakan berulang." } } },
-                    "ricecooker": { label: "Rice Cooker / Magic Com", umurNormal: "3 - 5 Tahun", gejala: { "termostat": { level: "ringan", levelLabel: "Ringan", part: "Elemen Panas / Magnet Termostat", harga: 35000, ongkos: 30000, hargaBaru: 400000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Nasi cepat basi biasanya karena per 'thermostat' tengah sudah melemah." } } },
+                    "ricecooker": { label: "Rice Cooker / Magic Com", umurNormal: "3 - 5 Tahun", gejala: { "termostat": { level: "ringan", levelLabel: "Ringan", part: "Elemen Panas / Magnet Termostat", harga: 35000, partMin: 25000, partMax: 60000, ongkos: 30000, jamKerja: 0.5, sertifikasi: "Tidak", kelangkaan: "Umum", tipeServis: "Drop-off", hargaBaru: 400000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Nasi cepat basi biasanya karena per 'thermostat' tengah sudah melemah." } } },
                     "dispenser": { label: "Dispenser Air", umurNormal: "4 - 7 Tahun", gejala: { "selangkeran": { level: "ringan", levelLabel: "Ringan", part: "Selang Silikon & Keran Air", harga: 25000, ongkos: 25000, hargaBaru: 450000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bersihkan tangki air panas dari kerak kapur secara berkala." } } },
                     "komporgas": { label: "Kompor Gas", umurNormal: "5 - 10 Tahun", gejala: { "burner": { level: "ringan", levelLabel: "Ringan", part: "Pemantik Api & Burner", harga: 45000, ongkos: 35000, hargaBaru: 500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Sikat bersih kepala burner yang tersumbat sisa minyak masakan." } } },
                     "ovenlistrik": { label: "Oven Listrik", umurNormal: "4 - 7 Tahun", gejala: { "elemenoven": { level: "sedang", levelLabel: "Sedang", part: "Pipa Elemen Pemanas", harga: 75000, ongkos: 50000, hargaBaru: 750000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Pastikan colokan listrik oven langsung ke dinding tanpa sambungan kabel roll." } } },
                     "vacuum": { label: "Vacuum Cleaner", umurNormal: "4 - 6 Tahun", gejala: { "motorvacuum": { level: "berat", levelLabel: "Berat", part: "Dinamo Vacuum Motor", harga: 150000, ongkos: 50000, hargaBaru: 850000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bersihkan filter HEPA secara rutin agar motor tidak cepat panas dan terbakar." } } },
-                    "waterheater": { label: "Water Heater (Pemanas Air)", umurNormal: "5 - 8 Tahun", gejala: { "elemenheater": { level: "berat", levelLabel: "Berat", part: "Elemen Pemanas & Seal", harga: 120000, ongkos: 75000, hargaBaru: 1800000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Ganti magnesium anode secara berkala untuk mencegah korosi tangki dalam." } } },
+                    "waterheater": { label: "Water Heater (Pemanas Air)", umurNormal: "5 - 8 Tahun", gejala: { "elemenheater": { level: "berat", levelLabel: "Berat", part: "Elemen Pemanas & Seal", harga: 120000, ongkos: 75000, jamKerja: 1.5, sertifikasi: "Ya", kelangkaan: "Menengah", tipeServis: "Home Visit", hargaBaru: 1800000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Ganti magnesium anode secara berkala untuk mencegah korosi tangki dalam." } } },
                     "blender": { label: "Blender & Juicer", umurNormal: "3 - 5 Tahun", gejala: { "pisauber": { level: "ringan", levelLabel: "Ringan", part: "Mata Pisau & Kopling Karet", harga: 30000, ongkos: 20000, hargaBaru: 350000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Jangan paksakan blender menghancurkan es batu terlalu besar tanpa air." } } },
                     "mixer": { label: "Mixer Kue", umurNormal: "4 - 7 Tahun", gejala: { "carbonbrush": { level: "ringan", levelLabel: "Ringan", part: "Carbon Brush Dinamo", harga: 25000, ongkos: 30000, hargaBaru: 450000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bau hangus ringan biasanya berasal dari arang carbon brush yang sudah aus." } } },
-                    "setrika": { label: "Setrika Listrik / Uap", umurNormal: "3 - 6 Tahun", gejala: { "kabelsetrika": { level: "ringan", levelLabel: "Ringan", part: "Kabel Serabut & Sekring Panas", harga: 25000, ongkos: 25000, hargaBaru: 200000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Jangan melilitkan kabel terlalu erat pada badan setrika agar kabel tidak putus di dalam." } } },
+                    "setrika": { label: "Setrika Listrik / Uap", umurNormal: "3 - 6 Tahun", gejala: { "kabelsetrika": { level: "ringan", levelLabel: "Ringan", part: "Kabel Serabut & Sekring Panas", harga: 25000, partMin: 15000, partMax: 40000, ongkos: 25000, jamKerja: 0.5, sertifikasi: "Tidak", kelangkaan: "Umum", tipeServis: "Drop-off", hargaBaru: 200000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Jangan melilitkan kabel terlalu erat pada badan setrika agar kabel tidak putus di dalam." } } },
                     "kipasangin": { label: "Kipas Angin", umurNormal: "3 - 5 Tahun", gejala: { "bushingkipas": { level: "ringan", levelLabel: "Ringan", part: "Bushing & Kapasitor Kipas", harga: 20000, ongkos: 25000, hargaBaru: 250000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Beri pelumas mesin jahit pada as kipas secara berkala saat putaran melambat." } } },
                     "airfryer": { label: "Air Fryer", umurNormal: "3 - 5 Tahun", gejala: { "sensorfryer": { level: "sedang", levelLabel: "Sedang", part: "Sensor Termostat & Kipas", harga: 85000, ongkos: 50000, hargaBaru: 900000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Bersihkan wadah dari sisa minyak untuk menghindari asap berlebih." } } },
-                    "tekolistrik": { label: "Teko Listrik", umurNormal: "2 - 4 Tahun", gejala: { "saklarteko": { level: "ringan", levelLabel: "Ringan", part: "Saklar Biinmetal Teko", harga: 20000, ongkos: 20000, hargaBaru: 150000, umurSisa: "1 Tahun lagi", keputusan: "servis", saran: "Jangan mengisi air melebihi batas maximum agar air tidak meluber ke saklar." } } },
+                    "tekolistrik": { label: "Teko Listrik", umurNormal: "2 - 4 Tahun", gejala: { "saklarteko": { level: "ringan", levelLabel: "Ringan", part: "Saklar Bimetal Teko", harga: 20000, ongkos: 20000, hargaBaru: 150000, umurSisa: "1 Tahun lagi", keputusan: "servis", saran: "Jangan mengisi air melebihi batas maximum agar air tidak meluber ke saklar." } } },
                     "exhaust": { label: "Exhaust Fan", umurNormal: "4 - 7 Tahun", gejala: { "dinamoexhaust": { level: "ringan", levelLabel: "Ringan", part: "Dinamo Exhaust / Bearing", harga: 40000, ongkos: 35000, hargaBaru: 250000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bersihkan debu dan minyak pada baling-baling setiap 3 bulan sekali." } } },
                     "mesinkopi": { label: "Mesin Kopi (Espresso Maker)", umurNormal: "3 - 6 Tahun", gejala: { "pompakopi": { level: "sedang", levelLabel: "Sedang", part: "Pompa Ulka Mini / Seal", harga: 150000, ongkos: 75000, hargaBaru: 2000000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Lakukan pembersihan kerak air (descaling) menggunakan cairan khusus secara rutin." } } },
                     "hairdryer": { label: "Hair Dryer", umurNormal: "3 - 5 Tahun", gejala: { "elemenhair": { level: "ringan", levelLabel: "Ringan", part: "Kawat Nikelin Pemanas", harga: 25000, ongkos: 25000, hargaBaru: 200000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Bersihkan saringan udara belakang dari rambut dan debu yang menyumbat." } } },
@@ -525,12 +515,12 @@
                     "lemaripakaian": { label: "Lemari Pakaian", umurNormal: "5 - 8 Tahun", gejala: { "engselsendok": { level: "ringan", levelLabel: "Ringan", part: "Engsel Sendok & Rel Laci", harga: 25000, ongkos: 35000, hargaBaru: 1800000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti engsel pintu lemari yang mulai berkarat agar pintu menutup rapat." } } },
                     "springbed": { label: "Kasur Springbed", umurNormal: "5 - 10 Tahun", gejala: { "perambles": { level: "berat", levelLabel: "Berat", part: "Pegas Per & Lapisan Busa", harga: 250000, ongkos: 150000, hargaBaru: 2500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Tambahkan papan triplek tambahan di bawah kasur jika per mulai melengkung." } } },
                     "pinturumah": { label: "Pintu Rumah", umurNormal: "8 - 15 Tahun", gejala: { "serutkunci": { level: "ringan", levelLabel: "Ringan", part: "Gembok / Silinder Kunci Pintu", harga: 65000, ongkos: 50000, hargaBaru: 450000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Pintu seret karena kelembapan bisa diatasi dengan menyerut bagian bawahnya." } } },
-                    "jendelakaca": { label: "Jendela Kaca / Kayu", umurNormal: "5 - 10 Tahun", gejala: { "karetjendela": { level: "ringan", levelLabel: "Ringan", part: "Karet Karet Jendela / Kaca", harga: 45000, ongkos: 40000, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti karet seal kaca jendela agar air hujan tidak merembes masuk ke dalam rumah." } } },
+                    "jendelakaca": { label: "Jendela Kaca / Kayu", umurNormal: "5 - 10 Tahun", gejala: { "karetjendela": { level: "ringan", levelLabel: "Ringan", part: "Karet Jendela / Kaca", harga: 45000, ongkos: 40000, hargaBaru: 350000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti karet seal kaca jendela agar air hujan tidak merembes masuk ke dalam rumah." } } },
                     "pagarbesi": { label: "Pagar Besi Rumah", umurNormal: "10+ Tahun", gejala: { "laspagar": { level: "sedang", levelLabel: "Sedang", part: "Kawat Las Besi & Cat Anti-Karat", harga: 80000, ongkos: 100000, hargaBaru: 2000000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Las bagian engsel pagar yang mulai kendur dan cat ulang untuk cegah karat." } } },
                     "kanopi": { label: "Kanopi Rumah", umurNormal: "8 - 12 Tahun", gejala: { "atapbocor": { level: "sedang", levelLabel: "Sedang", part: "Sealant Atap & Besi Siku", harga: 75000, ongkos: 120000, hargaBaru: 2500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Gunakan sealant silikon khusus outdoor pada setiap sekrup atap yang rembes." } } },
                     "teralis": { label: "Teralis Jendela", umurNormal: "10+ Tahun", gejala: { "teraliscat": { level: "ringan", levelLabel: "Ringan", part: "Cat Minyak & Kawat Las", harga: 35000, ongkos: 50000, hargaBaru: 600000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Amplas bagian teralis yang berkarat sebelum dicat ulang agar melekat sempurna." } } },
                     "raksepatu": { label: "Rak Sepatu / Rak Buku", umurNormal: "4 - 7 Tahun", gejala: { "raklonggar": { level: "ringan", levelLabel: "Ringan", part: "Sekrup Kayu & Sudut Siku", harga: 15000, ongkos: 20000, hargaBaru: 350000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Perkuat rangka belakang rak menggunakan triplek tipis agar struktur kokoh." } } },
-                    "cermindinding": { label: "Cermin Dinding", umurNormal: "5 - 10 Tahun", gejala: { "bingkaicermin": { level: "ringan", levelLabel: "Ringan", part: "Bingkai Kayu & Fischer", harga: 30000, ongkos: 25000, hargaBaru: 250000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Pastikan gantungan cermin menancap pada fischers dinding yang kuat." } } },
+                    "cermindinding": { label: "Cermin Dinding", umurNormal: "5 - 10 Tahun", gejala: { "bingkaicermin": { level: "ringan", levelLabel: "Ringan", part: "Bingkai Kayu & Fischer", harga: 30000, ongkos: 25000, hargaBaru: 250000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Pastikan gantungan cermin menancap pada fischer dinding yang kuat." } } },
                     "gorden": { label: "Gorden", umurNormal: "4 - 7 Tahun", gejala: { "rodagorden": { level: "ringan", levelLabel: "Ringan", part: "Roda Rel Gorden & Benang", harga: 20000, ongkos: 25000, hargaBaru: 300000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Cuci bersih kain gorden dan beri pelumas pada rel besi agar lancar ditarik." } } },
                     "jamdinding": { label: "Jam Dinding", umurNormal: "5 - 10 Tahun", gejala: { "mesinjam": { level: "ringan", levelLabel: "Ringan", part: "Mesin Jam Dinding Standar", harga: 15000, ongkos: 10000, hargaBaru: 100000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Mesin jam mati lebih hemat diganti satu set mesin baru daripada diperbaiki." } } },
                     "jemuran": { label: "Jemuran Baju Aluminium/Besi", umurNormal: "3 - 6 Tahun", gejala: { "rivetjemuran": { level: "ringan", levelLabel: "Ringan", part: "Paku Rivet Aluminium", harga: 10000, ongkos: 15000, hargaBaru: 250000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Ganti titik engsel jemuran aluminium yang copot menggunakan alat hand rivet." } } },
@@ -571,7 +561,7 @@
                 icon: icons.hobi,
                 barang: {
                     "panciwajan": { label: "Panci & Wajan", umurNormal: "4 - 6 Tahun", gejala: { "gaganggoang": { level: "ringan", levelLabel: "Ringan", part: "Baut Pengunci Gagang", harga: 5000, ongkos: 15000, hargaBaru: 120000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Kencangkan baut gagang dengan obeng plus (+) secara berkala." } } },
-                    "pancipresto": { label: "Panci Presto", umurNormal: "5 - 8 Tahun", gejala: { "karetseal": { level: "sedang", levelLabel: "Sedang", part: "Karet Seal Silikon Presto", harga: 25000, ongkos: 15000, hargaBaru: 250000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti karet seal agar tekanan uap presto kembali maksimal dan aman." } } },
+                    "pancipresto": { label: "Panci Presto", umurNormal: "5 - 8 Tahun", gejala: { "karetseal": { level: "sedang", levelLabel: "Sedang", part: "Karet Seal Silikon Presto", harga: 25000, partMin: 15000, partMax: 45000, ongkos: 15000, jamKerja: 0.25, sertifikasi: "Tidak", kelangkaan: "Umum", tipeServis: "Drop-off", hargaBaru: 250000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti karet seal agar tekanan uap presto kembali maksimal dan aman." } } },
                     "pisaudapur": { label: "Pisau Dapur", umurNormal: "5 - 10 Tahun", gejala: { "tumpullepas": { level: "ringan", levelLabel: "Ringan", part: "Batu Asahan Grid Halus", harga: 10000, ongkos: 10000, hargaBaru: 60000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Asah pisau dengan sudut kemiringan 15-20 derajat agar kembali tajam optimal." } } },
                     "guntingdapur": { label: "Gunting Dapur / Gunting Kain", umurNormal: "4 - 7 Tahun", gejala: { "tumpulengsel": { level: "ringan", levelLabel: "Ringan", part: "Baut Poros Gunting", harga: 5000, ongkos: 10000, hargaBaru: 45000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Kencangkan baut tengah dan asah sisi luar mata gunting." } } },
                     "termosair": { label: "Termos Air Panas", umurNormal: "3 - 5 Tahun", gejala: { "tutupbocor": { level: "ringan", levelLabel: "Ringan", part: "Ring Karet Tutup Termos", harga: 15000, ongkos: 10000, hargaBaru: 150000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Ganti karet penahan agar panas air di dalam termos tidak cepat keluar." } } },
@@ -594,32 +584,295 @@
             }
         };
 
+        let selectedKat = null, selectedBrg = null;
+        const elRowKat = document.getElementById('row-kategori');
+        const elRowBrg = document.getElementById('row-barang');
+        const elRowGjl = document.getElementById('row-gejala');
+        const sectionBrg = document.getElementById('section-barang');
+        const sectionGjl = document.getElementById('section-gejala');
+        const resultBox = document.getElementById('result-box');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initProvinsiDropdown();
+            renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+            checkSavedSessionUI();
+            syncGoogleSheets();
+            const savedEmail = localStorage.getItem("antigetok_email");
+            if (savedEmail) verifySavedEmailQuietly(savedEmail);
+            try {
+                if (typeof THREE !== 'undefined') initThreeJS();
+            } catch (e) {
+                console.warn("Three.js dilewati:", e);
+            }
+        });
+
+        document.getElementById('emailInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitVerifikasi();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                resultBox?.classList.add('hidden');
+            }
+        });
+
+        function initProvinsiDropdown() {
+            const select = document.getElementById('select-provinsi');
+            const savedProv = localStorage.getItem('antigetok_provinsi') || 'Jawa Barat';
+            PROVINCE_DATA.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.nama;
+                opt.innerText = `${p.nama} (UMP Rp ${p.ump.toLocaleString('id-ID')})`;
+                if (p.nama === savedProv) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function getSelectedProvinsi() {
+            const nama = document.getElementById('select-provinsi')?.value || 'Jawa Barat';
+            return PROVINCE_DATA.find(p => p.nama === nama) || PROVINCE_DATA[1];
+        }
+
+        function handleProvinsiChange() {
+            const prov = getSelectedProvinsi();
+            localStorage.setItem('antigetok_provinsi', prov.nama);
+            if (pendingGjlKey && pendingCardEl && !resultBox.classList.contains('hidden')) {
+                executeShowResult(pendingGjlKey, pendingCardEl);
+            }
+        }
+
+        // RUMUS PERHITUNGAN RENTANG ONGKOS TUKANG & SPAREPART
+        function hitungRentangBiaya(data, prov) {
+            const ump = prov.ump;
+            const biayaSingle = ump;
+            const biayaKeluarga3 = Math.round(ump * 2.2);
+            const jamProduktifBulan = 110;
+
+            const tarifJamMin = Math.round((biayaSingle / jamProduktifBulan) / 1000) * 1000;
+            const tarifJamMax = Math.round((biayaKeluarga3 / jamProduktifBulan) / 1000) * 1000;
+
+            const jamKerja = data.jamKerja || (data.level === 'berat' ? 2 : data.level === 'sedang' ? 1 : 0.5);
+            const faktorKesulitan = data.level === 'berat' ? 1.6 : data.level === 'sedang' ? 1.25 : 1.0;
+            const butuhSertifikasi = (data.sertifikasi || 'Tidak').toLowerCase() === 'ya';
+            const faktorSertifikasi = butuhSertifikasi ? 1.25 : 1.0;
+
+            const kelangkaanStr = (data.kelangkaan || 'Umum').toLowerCase();
+            const faktorKelangkaan = kelangkaanStr === 'langka' ? 1.5 : kelangkaanStr === 'menengah' ? 1.2 : 1.0;
+
+            const tipeServis = data.tipeServis || 'Drop-off';
+            const isHomeVisit = tipeServis.toLowerCase().includes('home');
+            const biayaKunjungan = isHomeVisit
+                ? Math.max(25000, Math.round(((ump / 5729876) * 50000) / 1000) * 1000)
+                : 0;
+
+            const pengaliTotal = jamKerja * faktorKesulitan * faktorSertifikasi * faktorKelangkaan;
+
+            let jasaMin = Math.round((tarifJamMin * pengaliTotal) / 1000) * 1000 + biayaKunjungan;
+            let jasaMax = Math.round((tarifJamMax * pengaliTotal) / 1000) * 1000 + biayaKunjungan;
+
+            const minFloor = isHomeVisit ? 45000 : 20000;
+            const maxFloor = isHomeVisit ? 75000 : 35000;
+            if (jasaMin < minFloor) jasaMin = minFloor;
+            if (jasaMax < maxFloor) jasaMax = maxFloor;
+            if (jasaMax < jasaMin) jasaMax = Math.round((jasaMin * 1.35) / 1000) * 1000;
+
+            let partMin = data.partMin !== undefined ? data.partMin : (data.harga > 0 ? Math.round((data.harga * 0.75) / 1000) * 1000 : 0);
+            let partMax = data.partMax !== undefined ? data.partMax : (data.harga > 0 ? Math.round((data.harga * 1.35) / 1000) * 1000 : 0);
+
+            return {
+                provNama: prov.nama,
+                ump,
+                biayaKeluarga3,
+                tarifJamMin,
+                tarifJamMax,
+                jamKerja,
+                faktorKesulitan,
+                butuhSertifikasi,
+                faktorSertifikasi,
+                kelangkaanStr: data.kelangkaan || 'Umum',
+                faktorKelangkaan,
+                tipeServis,
+                biayaKunjungan,
+                partMin,
+                partMax,
+                jasaMin,
+                jasaMax,
+                totalMin: partMin + jasaMin,
+                totalMax: partMax + jasaMax
+            };
+        }
+
+        function checkSavedSessionUI() {
+            const saved = localStorage.getItem("antigetok_email");
+            if (saved) {
+                document.getElementById('user-status').innerText = `👤 ${saved}`;
+                document.getElementById('btn-logout').classList.remove('hidden');
+            }
+        }
+
+        async function submitVerifikasi() {
+            const email = document.getElementById("emailInput").value.trim().toLowerCase();
+            const statusBox = document.getElementById("statusBox");
+
+            if (!email) {
+                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                statusBox.innerText = "❌ Mohon masukkan alamat email Anda!";
+                statusBox.classList.remove("hidden");
+                return;
+            }
+
+            statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-amber-950 text-amber-400 border border-amber-800";
+            statusBox.innerText = "⏳ Sedang mencocokkan email ke server...";
+            statusBox.classList.remove("hidden");
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const result = await response.json();
+
+                if (result.lunas === true) {
+                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-green-950 text-green-400 border border-green-800";
+                    statusBox.innerText = "✅ Verifikasi Berhasil! Membuka intel...";
+                    
+                    setTimeout(() => {
+                        isUnlocked = true;
+                        localStorage.setItem("antigetok_email", email);
+                        closeModal();
+                        checkSavedSessionUI();
+                        if (pendingGjlKey && pendingCardEl) {
+                            executeShowResult(pendingGjlKey, pendingCardEl);
+                        }
+                    }, 700);
+                } else {
+                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                    statusBox.innerText = "❌ Email belum terdaftar atau belum lunas. Silakan beli via Lynk.id.";
+                }
+            } catch (err) {
+                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                statusBox.innerText = "❌ Gagal terhubung ke server verifikasi.";
+            }
+        }
+
+        function openModalExplicit() {
+            document.getElementById("auth-modal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("auth-modal").classList.add("hidden");
+            document.getElementById("statusBox").classList.add("hidden");
+            document.getElementById("emailInput").value = "";
+        }
+
+        function logoutSession() {
+            isUnlocked = false;
+            localStorage.removeItem("antigetok_email");
+            document.getElementById('user-status').innerText = "";
+            document.getElementById('btn-logout').classList.add('hidden');
+            if (pendingGjlKey && pendingCardEl && !resultBox.classList.contains('hidden')) {
+                executeShowResult(pendingGjlKey, pendingCardEl);
+            }
+            alert("Sesi email telah dihapus. Data kembali disensor.");
+        }
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            if (!container || container.children.length > 0) return;
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 30;
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            const material = new THREE.MeshBasicMaterial({ color: 0xE50914, wireframe: true, transparent: true, opacity: 0.15 });
+            const torusKnot = new THREE.Mesh(geometry, material);
+            scene.add(torusKnot);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            const posArray = new Float32Array(particlesCount * 3);
+            for (let i = 0; i < particlesCount * 3; i++) posArray[i] = (Math.random() - 0.5) * 60;
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({ size: 0.2, color: 0xffffff, transparent: true, opacity: 0.4 });
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                torusKnot.rotation.x += 0.002;
+                torusKnot.rotation.y += 0.003;
+                particlesMesh.rotation.y -= 0.001;
+                renderer.render(scene, camera);
+            }
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+            animate();
+        }
+
         function normalizeKey(str) { return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
         function mergeRowsToDB(rows) {
             let addedCount = 0;
+            const katTitles = {
+                elektronik: "A. Elektronik & Dapur Besar",
+                gadget: "B. Gadget & Perangkat Kerja",
+                furnitur: "C. Furnitur & Perlengkapan Rumah",
+                pakaian: "D. Pakaian, Alas Kaki & Aksesori",
+                hobi: "E. Dapur, Kebun, Hobi & DIY",
+                kendaraan: "F. Kendaraan & Otomotif",
+                rumah: "G. Instalasi & Kelistrikan Rumah"
+            };
+
             rows.forEach((obj, idx) => {
                 const katRaw = (obj.kategori || '').trim();
                 const brgRaw = (obj.barangid || obj.barang || '').trim();
                 const gjlRaw = (obj.gejalaid || obj.gejala || '').trim();
                 const partRaw = (obj.komponen || obj.part || '').trim();
                 if (!katRaw || !brgRaw || (!gjlRaw && !partRaw)) return;
+
                 const katKey = normalizeKey(katRaw);
                 const brgKey = normalizeKey(brgRaw);
-                if (!db[katKey]) db[katKey] = { label: katRaw, icon: icons[katKey] || icons.gejala, barang: {} };
-                if (!db[katKey].barang[brgKey]) db[katKey].barang[brgKey] = { label: brgRaw.toUpperCase(), umurNormal: "5 - 8 Tahun", gejala: {} };
+                if (!db[katKey]) {
+                    db[katKey] = { label: katTitles[katKey] || katRaw, icon: icons[katKey] || icons.gejala, barang: {} };
+                }
+                if (!db[katKey].barang[brgKey]) {
+                    db[katKey].barang[brgKey] = { label: brgRaw, umurNormal: "5 - 8 Tahun", gejala: {} };
+                }
+
                 const tingkatRaw = (obj.tingkat || 'Ringan').trim();
                 const level = tingkatRaw.toLowerCase();
                 const gjlKey = normalizeKey(gjlRaw) || ('sheet_' + idx);
+                const hargaBase = parseInt(String(obj.hargapart || obj.harga || '0').replace(/[^0-9]/g, '')) || 0;
+                const partMinParsed = parseInt(String(obj.part_min || '').replace(/[^0-9]/g, ''));
+                const partMaxParsed = parseInt(String(obj.part_max || '').replace(/[^0-9]/g, ''));
+                const jamParsed = parseFloat(String(obj.jam_kerja || '').replace(',', '.'));
+
                 db[katKey].barang[brgKey].gejala[gjlKey] = {
                     level: ['ringan', 'sedang', 'berat'].includes(level) ? level : 'ringan',
                     levelLabel: tingkatRaw,
                     gejalaText: gjlRaw,
                     part: partRaw || '-',
-                    harga: parseInt(String(obj.hargapart || obj.harga || '0').replace(/[^0-9]/g, '')) || 0,
+                    harga: hargaBase,
+                    partMin: !isNaN(partMinParsed) ? partMinParsed : undefined,
+                    partMax: !isNaN(partMaxParsed) ? partMaxParsed : undefined,
                     ongkos: parseInt(String(obj.ongkos || '0').replace(/[^0-9]/g, '')) || 0,
+                    jamKerja: !isNaN(jamParsed) ? jamParsed : undefined,
+                    sertifikasi: (obj.sertifikasi || 'Tidak').trim(),
+                    kelangkaan: (obj.kelangkaan || 'Umum').trim(),
+                    tipeServis: (obj.tipe_servis || 'Drop-off').trim(),
+                    linkShopee: (obj.link_shopee || '').trim(),
                     hargaBaru: parseInt(String(obj.hargabaru || '0').replace(/[^0-9]/g, '')) || 0,
                     umurSisa: (obj.umur || obj.umursisa || '').trim() || '3 - 5 Tahun lagi',
-                    keputusan: obj.keputusan ? obj.keputusan.toLowerCase() : (level === 'berat' ? 'beli' : 'servis'),
+                    keputusan: obj.keputusan ? obj.keputusan.toLowerCase() : (level === 'berat' ? 'pertimbangkan' : 'servis'),
                     saran: (obj.saran || '').trim() || '-'
                 };
                 addedCount++;
@@ -690,14 +943,6 @@
             }
         }
 
-        let selectedKat = null, selectedBrg = null;
-        const elRowKat = document.getElementById('row-kategori');
-        const elRowBrg = document.getElementById('row-barang');
-        const elRowGjl = document.getElementById('row-gejala');
-        const sectionBrg = document.getElementById('section-barang');
-        const sectionGjl = document.getElementById('section-gejala');
-        const resultBox = document.getElementById('result-box');
-
         function renderCards(container, dataObj, onClickCallback, defaultIcon) {
             container.innerHTML = '';
             for (const key in dataObj) {
@@ -734,7 +979,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start pointer-events-none">
                         <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${badgeColor} text-white">${gObj.levelLabel}</span>
-                        <span class="text-[10px] text-gray-400">Est: Rp ${(gObj.harga + gObj.ongkos).toLocaleString('id-ID')}</span>
+                        <span class="text-[10px] text-gray-400">${gObj.tipeServis || 'Servis'}</span>
                     </div>
                     <div class="font-semibold text-xs mt-2 line-clamp-2 text-gray-200 pointer-events-none">${gObj.gejalaText || gObj.part}</div>
                     <div class="text-[10px] text-orange-400 mt-1 pointer-events-none">Klik Analisa →</div>
@@ -752,10 +997,8 @@
             executeShowResult(gKey, cardElement);
             
             const savedEmail = localStorage.getItem("antigetok_email");
-            if (savedEmail) {
+            if (savedEmail && !isUnlocked) {
                 verifySavedEmailQuietly(savedEmail);
-            } else {
-                lockSpoiler();
             }
         }
 
@@ -768,12 +1011,13 @@
                 });
                 const result = await response.json();
                 if (result.lunas === true) {
-                    unlockSpoiler();
-                } else {
-                    lockSpoiler();
+                    isUnlocked = true;
+                    if (pendingGjlKey && pendingCardEl && !resultBox.classList.contains('hidden')) {
+                        executeShowResult(pendingGjlKey, pendingCardEl);
+                    }
                 }
             } catch (e) {
-                lockSpoiler();
+                isUnlocked = false;
             }
         }
 
@@ -782,30 +1026,83 @@
             cardElement.classList.add('active');
             const itemData = db[selectedKat].barang[selectedBrg];
             const data = itemData.gejala[key];
-            const fmt = (num) => "Rp " + num.toLocaleString('id-ID');
+            const prov = getSelectedProvinsi();
+            const calc = hitungRentangBiaya(data, prov);
 
-            document.getElementById('res-part').innerText = data.part;
-            document.getElementById('res-harga').innerText = data.harga > 0 ? fmt(data.harga) : "Gratis / Jasa Saja";
-            document.getElementById('res-ongkos').innerText = fmt(data.ongkos);
-            document.getElementById('res-total').innerText = fmt(data.harga + data.ongkos);
-            document.getElementById('res-saran').innerText = data.saran;
-            document.getElementById('res-beli').innerText = data.hargaBaru > 0 ? fmt(data.hargaBaru) : "Cek Online";
+            const fmt = (num) => "Rp " + num.toLocaleString('id-ID');
+            const fmtRange = (min, max) => min === max ? fmt(min) : `${fmt(min)} - ${fmt(max)}`;
+
+            document.getElementById('hud-provinsi-label').innerText = calc.provNama.toUpperCase();
+            document.getElementById('hud-ump-label').innerText = fmt(calc.ump);
+            document.getElementById('formula-provinsi-badge').innerText = calc.provNama;
             document.getElementById('res-umur').innerText = itemData.umurNormal;
             document.getElementById('res-sisa').innerText = data.umurSisa;
 
             const keputusanEl = document.getElementById('res-keputusan');
-            if(data.keputusan === 'servis') {
-                keputusanEl.className = "bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
-                keputusanEl.innerText = "SANGAT DISARANKAN: SERVIS";
-            } else if(data.keputusan === 'pertimbangkan') {
-                keputusanEl.className = "bg-amber-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
-                keputusanEl.innerText = "PERTIMBANGKAN: Bandingkan Biaya";
+            const paywallBottom = document.getElementById('paywall-bottom-box');
+            const unlockedActions = document.getElementById('unlocked-actions');
+            const btnShopee = document.getElementById('btn-search-shopee');
+
+            if (isUnlocked) {
+                // MODE TERBUKA: Tampilkan seluruh angka dan saran asli
+                document.getElementById('res-part').innerHTML = data.part;
+                document.getElementById('res-harga').innerHTML = calc.partMax > 0 ? fmtRange(calc.partMin, calc.partMax) : "Gratis / Jasa Saja";
+                document.getElementById('res-ongkos').innerHTML = fmtRange(calc.jasaMin, calc.jasaMax);
+                document.getElementById('res-jasa-meta').innerText = `${calc.tipeServis} • Est. ${calc.jamKerja} jam • ${data.levelLabel}`;
+                document.getElementById('res-total').innerHTML = fmtRange(calc.totalMin, calc.totalMax);
+                document.getElementById('res-saran').innerHTML = data.saran;
+                document.getElementById('res-beli').innerText = data.hargaBaru > 0 ? fmt(data.hargaBaru) : "Cek Online";
+
+                document.getElementById('formula-breakdown').innerHTML = `
+                    <div>• Tarif/jam (${calc.provNama}): ${fmt(calc.tarifJamMin)} (Single) – ${fmt(calc.tarifJamMax)} (Keluarga 3 Anak)</div>
+                    <div>• Bobot: ${calc.jamKerja} jam × Kesulitan ${calc.faktorKesulitan}x × Sertifikasi ${calc.faktorSertifikasi}x (${calc.butuhSertifikasi ? 'Wajib' : 'Tidak'}) × Kelangkaan ${calc.faktorKelangkaan}x (${calc.kelangkaanStr})</div>
+                    <div>• Biaya Kunjungan (${calc.tipeServis}): ${calc.biayaKunjungan > 0 ? fmt(calc.biayaKunjungan) : 'Rp 0 (Antar ke Bengkel)'}</div>
+                `;
+
+                if (data.keputusan === 'servis') {
+                    keputusanEl.className = "bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                    keputusanEl.innerText = "SANGAT DISARANKAN: SERVIS";
+                } else if (data.keputusan === 'pertimbangkan') {
+                    keputusanEl.className = "bg-amber-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                    keputusanEl.innerText = "PERTIMBANGKAN: Bandingkan Biaya";
+                } else {
+                    keputusanEl.className = "bg-red-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                    keputusanEl.innerText = "DIREKOMENDASIKAN: BELI BARU";
+                }
+
+                if (data.linkShopee) {
+                    btnShopee.href = data.linkShopee;
+                    btnShopee.classList.remove('hidden');
+                } else {
+                    btnShopee.classList.add('hidden');
+                }
+
+                document.getElementById('btn-search-maps').href = `https://www.google.com/maps/search/${encodeURIComponent("Jasa servis " + itemData.label + " terdekat " + calc.provNama)}`;
+                paywallBottom.classList.add('hidden');
+                unlockedActions.classList.remove('hidden');
             } else {
-                keputusanEl.className = "bg-red-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
-                keputusanEl.innerText = "DIREKOMENDASIKAN: BELI BARU";
+                // MODE TERKUNCI: Tampilkan layout analisa dengan sensor xxxxx
+                keputusanEl.className = "bg-zinc-700 text-gray-200 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider border border-zinc-600";
+                keputusanEl.innerText = "🔒 REKOMENDASI: xxxxxxxxx";
+
+                document.getElementById('res-beli').innerText = "Rp x.xxx.xxx";
+                document.getElementById('res-part').innerHTML = `<span class="censored-text">xxxxx xxxxx xxxxx</span>`;
+                document.getElementById('res-harga').innerHTML = `<span class="censored-text">Rp xxx.xxx - Rp xxx.xxx</span>`;
+                document.getElementById('res-ongkos').innerHTML = `<span class="censored-text">Rp xxx.xxx - Rp xxx.xxx</span>`;
+                document.getElementById('res-jasa-meta').innerText = `${calc.tipeServis} • ${data.levelLabel} • ${calc.provNama}`;
+                document.getElementById('res-total').innerHTML = `<span class="censored-text text-base md:text-xl">Rp xxx.xxx - Rp xxx.xxx</span>`;
+                document.getElementById('res-saran').innerHTML = `<span class="censored-text">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span> <span class="text-xs text-gray-400">(Buka akses untuk melihat tips cek kerusakan & skrip anti-getok Pak Nanbe)</span>`;
+
+                document.getElementById('formula-breakdown').innerHTML = `
+                    <div>• Tarif/jam (${calc.provNama}): <span class="text-red-400">Rp xx.xxx</span> (Single) – <span class="text-red-400">Rp xx.xxx</span> (Keluarga 3 Anak)</div>
+                    <div>• Bobot: <span class="text-red-400">x.x jam</span> × Kesulitan <span class="text-red-400">x.xx</span> × Sertifikasi (${calc.butuhSertifikasi ? 'Wajib' : 'Tidak'}) × Kelangkaan (${calc.kelangkaanStr})</div>
+                    <div>• Biaya Kunjungan (${calc.tipeServis}): <span class="text-red-400">Rp xx.xxx</span></div>
+                `;
+
+                unlockedActions.classList.add('hidden');
+                paywallBottom.classList.remove('hidden');
             }
 
-            document.getElementById('btn-search-maps').href = `https://www.google.com/maps/search/${encodeURIComponent("Jasa servis " + itemData.label + " terdekat")}`;
             resultBox.classList.remove('hidden');
             setTimeout(() => resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
         }
