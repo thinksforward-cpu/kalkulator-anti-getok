@@ -75,7 +75,7 @@
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
         
-        /* Efek Blur & Siluet Hasil Analisa di Belakang */
+        /* Efek Blur & Siluet Hasil Analisa */
         .blur-spoiler {
             filter: blur(6px);
             user-select: none;
@@ -85,11 +85,11 @@
 
         /* Styling Frosted Glass Overlay */
         .frosted-paywall {
-            background: rgba(20, 20, 20, 0.65);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            background: rgba(20, 20, 20, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
         }
 
         .hero-vignette { background: linear-gradient(to top, #141414 0%, transparent 100%); }
@@ -127,7 +127,7 @@
             </div>
             
             <h2 class="text-3xl text-white mb-2 cinematic-title">BUKA EPISODE FINAL</h2>
-            <p class="text-gray-400 text-xs mb-6">Masukkan email terdaftar Anda untuk mencairkan sensor frosted glass hasil analisa.</p>
+            <p class="text-gray-400 text-sm mb-6">Masukkan email terdaftar Anda untuk mencairkan sensor frosted glass hasil analisa.</p>
             
             <div class="space-y-4 text-left">
                 <div>
@@ -196,7 +196,7 @@
                 <div id="row-gejala" class="carousel-container"></div>
             </div>
 
-            <!-- Result Box dengan Frosted Glass Paywall Overlay -->
+            <!-- Result Box dengan Frosted Glass Paywall Overlay & Vektor Pak Nanbe -->
             <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto relative">
                 <h2 class="text-3xl text-white mb-4 cinematic-title text-center"><span class="text-[#E50914]">EPISODE FINAL:</span> HASIL ANALISA</h2>
                 
@@ -204,17 +204,25 @@
                     
                     <!-- FROSTED GLASS PAYWALL OVERLAY -->
                     <div id="paywall-overlay" class="absolute inset-0 z-30 frosted-paywall flex flex-col items-center justify-center p-6 text-center animate-fade-in">
-                        <div class="bg-[#E50914] text-white p-3 rounded-full shadow-lg mb-3">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        
+                        <!-- Gambar Vektor Pak Nanbe -->
+                        <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-[#E50914] shadow-lg mb-3 bg-zinc-900 flex items-center justify-center">
+                            <img src="karakter_kostum_kucing_vector.svg" alt="Pak Nanbe" class="w-full h-full object-cover transform scale-125">
                         </div>
-                        <h3 class="text-2xl text-white cinematic-title mb-1">KONTEN TERKUNCI (FROSTED GLASS)</h3>
-                        <p class="text-gray-300 text-xs max-w-md mb-6">Hasil analisa lengkap, rincian komponen, dan estimasi biaya wajar di balik layar ini terkunci. Masukkan email terdaftar atau beli akses untuk mencairkan tampilan.</p>
-                        <div class="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
-                            <button onclick="openModalExplicit()" class="bg-[#E50914] hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm cinematic-title tracking-wider">
+
+                        <h3 class="text-3xl text-white cinematic-title mb-1">KONTEN TERKUNCI</h3>
+                        
+                        <!-- Teks Menggunakan Opsi 2 dengan Font Diperbesar -->
+                        <p class="text-gray-200 text-sm md:text-base font-medium max-w-lg mb-6 leading-relaxed">
+                            Jangan sampai tertipu tukang servis nakal. Buka data rahasia harga komponen dan ongkos wajar yang sebenarnya dengan memasukkan email atau beli aksesnya via Lynk.id.
+                        </p>
+
+                        <div class="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                            <button onclick="openModalExplicit()" class="bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition text-base cinematic-title tracking-wider shadow-md">
                                 🔑 Buka dengan Email
                             </button>
-                            <a href="https://lynk.id/nanbe/z6x97m67pm49" target="_blank" class="bg-[#0071eb] hover:bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm">
-                                🚀 Beli via Lynk.id
+                            <a href="https://lynk.id/nanbe/z6x97m67pm49" target="_blank" class="bg-[#0071eb] hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition text-sm font-semibold flex items-center justify-center gap-2 shadow-md">
+                                🚀 Beli Akses via Lynk.id
                             </a>
                         </div>
                     </div>
@@ -224,20 +232,6 @@
                         <div class="absolute top-4 left-4 z-10">
                             <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded">PAK NANBE (EXPERT)</span>
                         </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-48 h-48 drop-shadow-2xl">
-                            <circle cx="50" cy="50" r="45" fill="#f97316"/>
-                            <polygon points="15,20 30,35 15,45" fill="#ea580c"/>
-                            <polygon points="85,20 70,35 85,45" fill="#ea580c"/>
-                            <circle cx="35" cy="45" r="5" fill="#fff"/>
-                            <circle cx="65" cy="45" r="5" fill="#fff"/>
-                            <circle cx="35" cy="45" r="2" fill="#000"/>
-                            <circle cx="65" cy="45" r="2" fill="#000"/>
-                            <path d="M45,55 Q50,60 55,55" stroke="#fff" stroke-width="2" fill="none"/>
-                            <polygon points="48,50 52,50 50,53" fill="#ea580c"/>
-                            <circle cx="35" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
-                            <circle cx="65" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
-                            <line x1="45" y1="45" x2="55" y2="45" stroke="#333" stroke-width="2"/>
-                        </svg>
                     </div>
 
                     <div id="analysis-details" class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818] blur-spoiler">
