@@ -276,7 +276,7 @@
             <div class="absolute top-3 right-3 text-gray-400 hover:text-white cursor-pointer" onclick="closePaywall()">✕</div>
             
             <div class="text-[#E50914] font-bold text-2xl cinematic-title mb-1">BUKA KUNCI ANALISA</div>
-            <p class="text-gray-400 text-xs mb-5">Masukkan email Anda untuk akses instan tanpa ribet cek email.</p>
+            <p class="text-gray-400 text-xs mb-5">Masukkan email Anda untuk akses instan & sinkronisasi pembayaran.</p>
             
             <div id="form-input-email" class="space-y-4">
                 <input type="email" id="user-email" placeholder="namaemail@gmail.com" class="w-full bg-zinc-900 border border-zinc-700 rounded px-4 py-3 text-white text-sm focus:outline-none focus:border-[#E50914]" required>
@@ -288,17 +288,25 @@
             <div id="form-waiting-payment" class="hidden space-y-4 py-6">
                 <div class="inline-block w-10 h-10 border-4 border-[#E50914] border-t-transparent rounded-full animate-spin mb-2"></div>
                 <p class="text-white font-semibold text-sm">Menunggu Pembayaran QRIS Selesai...</p>
-                <p class="text-gray-400 text-xs">Silakan selesaikan pembayaran di tab Lynk.id. Layar ini akan terbuka otomatis dalam hitungan detik setelah lunas!</p>
-                <button onclick="bukaLinkBayarUlang()" class="text-xs text-[#E50914] underline mt-2 block mx-auto">Klik di sini jika halaman pembayaran tertutup</button>
+                <p class="text-gray-400 text-xs">Sedang mencocokkan pembayaran untuk email: <strong id="lbl-current-email" class="text-orange-400"></strong></p>
+                
+                <div class="pt-2 space-y-2">
+                    <button onclick="bukaLinkBayarUlang()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-200 text-xs py-2 rounded transition">
+                        Buka Ulang Halaman Pembayaran Lynk.id
+                    </button>
+                    <!-- Tombol Ganti / Verifikasi Email Ulang -->
+                    <button onclick="resetGantiEmail()" class="w-full bg-transparent text-[#E50914] hover:underline text-xs font-semibold py-1">
+                        ✏️ Ganti / Verifikasi Email Lain
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- JavaScript Application Logic -->
     <script>
-        // === KONFIGURASI BACKEND & GOOGLE SHEETS ===
         const WORKER_URL = "https://api-antigetok.thinksforward.workers.dev"; 
-        const LYNK_PAYMENT_URL = "http://lynk.id/nanbe/z6x97m67pm49"; // Terpasang link produk Rp 10.000 Anda
+        const LYNK_PAYMENT_URL = "http://lynk.id/nanbe/z6x97m67pm49";
         
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQpG2blnISqZ66WXTq7WTpbSoeamPXPoFKcwKV2SAICOeV-7jUpCN4Bsn8PeUjXyVXys-9V_2why6L0/pub?gid=0&single=true&output=csv";
         const SHEET_ID = "1zQqtXfcD6e5jFc5eWbPUJSxQkqeiTOJbnk76tPyMJHs";
@@ -307,7 +315,6 @@
         let pendingGejalaKey = null;
         let pollingInterval = null;
 
-        // === 1. THREE.JS BACKGROUND ANIMATION ===
         function initThreeJS() {
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
@@ -321,28 +328,16 @@
             container.appendChild(renderer.domElement);
 
             const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-            const material = new THREE.MeshBasicMaterial({ 
-                color: 0xE50914,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.15
-            });
+            const material = new THREE.MeshBasicMaterial({ color: 0xE50914, wireframe: true, transparent: true, opacity: 0.15 });
             const torusKnot = new THREE.Mesh(geometry, material);
             scene.add(torusKnot);
 
             const particlesGeometry = new THREE.BufferGeometry();
             const particlesCount = 200;
             const posArray = new Float32Array(particlesCount * 3);
-            for(let i = 0; i < particlesCount * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 60;
-            }
+            for(let i = 0; i < particlesCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 60; }
             particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const particlesMaterial = new THREE.PointsMaterial({
-                size: 0.2,
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.4
-            });
+            const particlesMaterial = new THREE.PointsMaterial({ size: 0.2, color: 0xffffff, transparent: true, opacity: 0.4 });
             const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
             scene.add(particlesMesh);
 
@@ -359,11 +354,9 @@
                 camera.updateProjectionMatrix();
                 renderer.setSize(container.clientWidth, container.clientHeight);
             });
-
             animate();
         }
 
-        // === 2. DATABASE KOMPREHENSIF BAWAAN + SINKRONISASI GOOGLE SHEETS ===
         const icons = {
             elektronik: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><circle cx="12" cy="10" r="2" class="motion-pulse" fill="#E50914" stroke="none"/></svg>`,
             pribadi: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>`,
@@ -408,35 +401,21 @@
                 const brgKey = normalizeKey(brgRaw);
 
                 if (!db[katKey]) {
-                    db[katKey] = {
-                        label: katRaw.charAt(0).toUpperCase() + katRaw.slice(1),
-                        icon: icons[katKey] || icons.gejala,
-                        barang: {}
-                    };
+                    db[katKey] = { label: katRaw.charAt(0).toUpperCase() + katRaw.slice(1), icon: icons[katKey] || icons.gejala, barang: {} };
                 }
-
                 if (!db[katKey].barang[brgKey]) {
-                    db[katKey].barang[brgKey] = {
-                        label: brgRaw.toUpperCase(),
-                        umurNormal: "5 - 8 Tahun",
-                        gejala: {}
-                    };
+                    db[katKey].barang[brgKey] = { label: brgKey.toUpperCase(), umurNormal: "5 - 8 Tahun", gejala: {} };
                 }
 
                 const tingkatRaw = (obj.tingkat || 'Ringan').trim();
                 const level = tingkatRaw.toLowerCase();
-                const keputusan = obj.keputusan ? obj.keputusan.toLowerCase() :
-                                  (level === 'berat' ? 'beli' : (level === 'sedang' ? 'pertimbangkan' : 'servis'));
+                const keputusan = obj.keputusan ? obj.keputusan.toLowerCase() : (level === 'berat' ? 'beli' : (level === 'sedang' ? 'pertimbangkan' : 'servis'));
 
                 const gjlKey = normalizeKey(gjlRaw) || ('sheet_' + idx);
                 const existingGejala = db[katKey].barang[brgKey].gejala;
-                
                 let targetKey = gjlKey;
                 for (const k in existingGejala) {
-                    if (k === gjlKey || (partRaw && existingGejala[k].part.toLowerCase() === partRaw.toLowerCase())) {
-                        targetKey = k;
-                        break;
-                    }
+                    if (k === gjlKey || (partRaw && existingGejala[k].part.toLowerCase() === partRaw.toLowerCase())) { targetKey = k; break; }
                 }
 
                 const prev = existingGejala[targetKey] || {};
@@ -459,21 +438,16 @@
 
         function parseCSVText(str) {
             const arr = [];
-            let row = [''];
-            let col = 0;
-            let quote = false;
+            let row = ['']; let col = 0; let quote = false;
             for (let c = 0; c < str.length; c++) {
                 let cc = str[c], nc = str[c+1];
                 if (cc === '"') { quote = !quote; continue; }
                 if (!quote && cc === ',') { row[++col] = ''; continue; }
-                if (!quote && (cc === '\r' && nc === '\n' || cc === '\n')) {
-                    arr.push(row); row = ['']; col = 0; if (cc === '\r') c++; continue;
-                }
+                if (!quote && (cc === '\r' && nc === '\n' || cc === '\n')) { arr.push(row); row = ['']; col = 0; if (cc === '\r') c++; continue; }
                 row[col] += cc;
             }
             if (row.length > 1 || row[0] !== '') arr.push(row);
             if (arr.length < 2) return [];
-
             const headers = arr[0].map(h => h.trim().toLowerCase());
             return arr.slice(1).map(r => {
                 let obj = {};
@@ -484,10 +458,7 @@
 
         function updateSyncBadge(text, colorClass) {
             const badge = document.getElementById('sync-badge');
-            if (badge) {
-                badge.innerText = text;
-                badge.className = `text-[10px] font-bold px-2 py-0.5 rounded border ${colorClass}`;
-            }
+            if (badge) { badge.innerText = text; badge.className = `text-[10px] font-bold px-2 py-0.5 rounded border ${colorClass}`; }
         }
 
         window.onGvizLoad = function(response) {
@@ -495,35 +466,21 @@
                 if (!response || !response.table || !response.table.rows) return;
                 const cols = response.table.cols.map(c => (c.label || '').trim().toLowerCase());
                 const rawRows = response.table.rows;
-                
-                let headers = cols;
-                let dataStartIdx = 0;
+                let headers = cols; let dataStartIdx = 0;
                 if (!headers[0] && rawRows.length > 0 && rawRows[0].c) {
                     headers = rawRows[0].c.map(cell => cell && cell.v ? String(cell.v).trim().toLowerCase() : '');
                     dataStartIdx = 1;
                 }
-
                 const parsedRows = [];
                 for (let r = dataStartIdx; r < rawRows.length; r++) {
                     const cells = rawRows[r].c || [];
                     let obj = {};
-                    headers.forEach((h, i) => {
-                        if (h) {
-                            const val = cells[i] && cells[i].v !== null && cells[i].v !== undefined ? String(cells[i].v).trim() : '';
-                            obj[h] = val;
-                        }
-                    });
+                    headers.forEach((h, i) => { if (h) obj[h] = cells[i] && cells[i].v !== null ? String(cells[i].v).trim() : ''; });
                     parsedRows.push(obj);
                 }
-
                 const count = mergeRowsToDB(parsedRows);
-                if (count > 0) {
-                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
-                    updateSyncBadge("LIVE SHEETS SYNC", "bg-green-950 text-green-400 border-green-700");
-                }
-            } catch (err) {
-                updateSyncBadge("LOCAL DB READY", "bg-zinc-800 text-gray-300 border-zinc-700");
-            }
+                if (count > 0) { renderCards(elRowKat, db, handleKatClick, icons.elektronik); updateSyncBadge("LIVE SHEETS SYNC", "bg-green-950 text-green-400 border-green-700"); }
+            } catch (err) { updateSyncBadge("LOCAL DB READY", "bg-zinc-800 text-gray-300 border-zinc-700"); }
         };
 
         function loadViaJSONP() {
@@ -540,18 +497,11 @@
                 const text = await response.text();
                 const rows = parseCSVText(text);
                 const count = mergeRowsToDB(rows);
-                if (count > 0) {
-                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
-                    updateSyncBadge("LIVE CSV SYNC", "bg-green-950 text-green-400 border-green-700");
-                    return;
-                }
+                if (count > 0) { renderCards(elRowKat, db, handleKatClick, icons.elektronik); updateSyncBadge("LIVE CSV SYNC", "bg-green-950 text-green-400 border-green-700"); return; }
                 throw new Error("CSV kosong");
-            } catch (e) {
-                loadViaJSONP();
-            }
+            } catch (e) { loadViaJSONP(); }
         }
 
-        // === 3. UI INTERACTION & SEAMLESS PAYWALL LOGIC ===
         let selectedKat = null;
         let selectedBrg = null;
 
@@ -566,31 +516,20 @@
             container.innerHTML = '';
             for (const key in dataObj) {
                 const item = dataObj[key];
-                const label = item.label || key;
-                const icon = item.icon || defaultIcon;
-                
                 const card = document.createElement('div');
                 card.className = 'nf-card shrink-0' + (selectedKat === key || selectedBrg === key ? ' active' : '');
                 card.id = `card-${key}`;
-                card.innerHTML = `
-                    <div class="nf-card-bg flex flex-col pt-4">${icon}</div>
-                    <div class="nf-card-title">${label}</div>
-                `;
+                card.innerHTML = `<div class="nf-card-bg flex flex-col pt-4">${item.icon || defaultIcon}</div><div class="nf-card-title">${item.label || key}</div>`;
                 card.onclick = () => onClickCallback(key, card);
                 container.appendChild(card);
             }
         }
 
         function handleKatClick(key, cardElement) {
-            selectedKat = key;
-            selectedBrg = null;
+            selectedKat = key; selectedBrg = null;
             Array.from(elRowKat.children).forEach(c => c.classList.remove('active'));
             cardElement.classList.add('active');
-            
-            sectionGjl.classList.add('hidden');
-            resultBox.classList.add('hidden');
-            sectionBrg.classList.remove('hidden');
-
+            sectionGjl.classList.add('hidden'); resultBox.classList.add('hidden'); sectionBrg.classList.remove('hidden');
             renderCards(elRowBrg, db[key].barang, handleBrgClick, db[key].icon);
             sectionBrg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -599,9 +538,7 @@
             selectedBrg = key;
             Array.from(elRowBrg.children).forEach(c => c.classList.remove('active'));
             cardElement.classList.add('active');
-            
-            resultBox.classList.add('hidden');
-            sectionGjl.classList.remove('hidden');
+            resultBox.classList.add('hidden'); sectionGjl.classList.remove('hidden');
 
             const gejalaData = db[selectedKat].barang[key].gejala;
             elRowGjl.innerHTML = '';
@@ -639,10 +576,21 @@
                 document.getElementById('user-email').value = savedEmail;
                 jalankanAutoPolling(savedEmail, itemKey, gejalaKey, true);
             } else {
-                document.getElementById('form-input-email').classList.remove('hidden');
-                document.getElementById('form-waiting-payment').classList.add('hidden');
-                document.getElementById('paywall-modal').classList.remove('hidden');
+                bukaFormInputEmail();
             }
+        }
+
+        function bukaFormInputEmail() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            document.getElementById('form-input-email').classList.remove('hidden');
+            document.getElementById('form-waiting-payment').classList.add('hidden');
+            document.getElementById('paywall-modal').classList.remove('hidden');
+        }
+
+        function resetGantiEmail() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            document.getElementById('form-waiting-payment').classList.add('hidden');
+            document.getElementById('form-input-email').classList.remove('hidden');
         }
 
         function closePaywall() {
@@ -665,6 +613,7 @@
         }
 
         async function jalankanAutoPolling(email, itemKey, gejalaKey, isAutoCheck) {
+            document.getElementById('lbl-current-email').innerText = email;
             document.getElementById('form-input-email').classList.add('hidden');
             document.getElementById('form-waiting-payment').classList.remove('hidden');
             document.getElementById('paywall-modal').classList.remove('hidden');
