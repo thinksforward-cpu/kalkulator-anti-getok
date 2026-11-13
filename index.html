@@ -14,33 +14,27 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #141414; /* Netflix dark */
+            background-color: #141414;
             color: #e5e5e5;
             overflow-x: hidden;
         }
-        
         h1, h2, .cinematic-title {
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 1px;
         }
-
-        /* Netflix Carousel Styling */
         .carousel-container {
             display: flex;
             overflow-x: auto;
             gap: 12px;
             padding-bottom: 16px;
             scroll-snap-type: x mandatory;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
-        .carousel-container::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
-        }
-
+        .carousel-container::-webkit-scrollbar { display: none; }
         .nf-card {
             min-width: 240px;
             max-width: 240px;
-            height: 135px; /* 16:9 aspect ratio */
+            height: 135px;
             background-color: #262626;
             border-radius: 6px;
             scroll-snap-align: start;
@@ -50,20 +44,17 @@
             overflow: hidden;
             border: 2px solid transparent;
         }
-
         .nf-card:hover {
             transform: scale(1.05);
             z-index: 10;
             box-shadow: 0 10px 20px rgba(0,0,0,0.8);
             border-color: #404040;
         }
-        
         .nf-card.active {
             border-color: #E50914;
             transform: scale(1.02);
             box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
         }
-
         .nf-card-bg {
             position: absolute;
             inset: 0;
@@ -74,54 +65,22 @@
             opacity: 0.6;
             transition: opacity 0.3s;
         }
-        
-        .nf-card:hover .nf-card-bg, .nf-card.active .nf-card-bg {
-            opacity: 1;
-        }
-
+        .nf-card:hover .nf-card-bg, .nf-card.active .nf-card-bg { opacity: 1; }
         .nf-card-title {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             padding: 12px;
             background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 600; font-size: 14px;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
-
-        /* Hero Gradient Fade */
-        .hero-vignette {
-            background: linear-gradient(to top, #141414 0%, transparent 100%);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        /* 2D Motion Graphics Animations */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px rgba(229,9,20,0.5)); }
-            50% { opacity: 0.6; filter: drop-shadow(0 0 15px rgba(229,9,20,0.8)); }
-        }
-        @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        @keyframes swing {
-            0%, 100% { transform: rotate(-5deg); }
-            50% { transform: rotate(5deg); }
-        }
-
+        .hero-vignette { background: linear-gradient(to top, #141414 0%, transparent 100%); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes pulse-glow { 0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px rgba(229,9,20,0.5)); } 50% { opacity: 0.6; filter: drop-shadow(0 0 15px rgba(229,9,20,0.8)); } }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes swing { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
         .motion-float { animation: float 3s ease-in-out infinite; }
         .motion-pulse { animation: pulse-glow 2s ease-in-out infinite; }
         .motion-spin { animation: spin-slow 8s linear infinite; }
@@ -131,23 +90,26 @@
 <body class="antialiased min-h-screen relative pb-20">
 
     <!-- Navbar -->
-    <nav class="absolute top-0 w-full z-50 p-4 md:px-12 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+    <nav class="absolute top-0 w-full z-40 p-4 md:px-12 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
         <div class="text-[#E50914] font-bold text-3xl cinematic-title tracking-wider">NANBE.TIPS</div>
         <div class="flex items-center gap-3">
             <span id="sync-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-zinc-800 text-gray-300 border border-zinc-700">SYNCING...</span>
-            <div class="text-xs md:text-sm font-semibold text-gray-300 hidden sm:block">INTERACTIVE SERIES</div>
+            <span id="user-status" class="text-xs text-gray-400 hidden sm:inline"></span>
+            <button onclick="logoutSession()" id="btn-logout" class="hidden text-xs bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded text-red-400 border border-zinc-700">Keluar</button>
         </div>
     </nav>
 
-    <!-- TAHAP 1: GATEWAY VERIFIKASI EMAIL / PEMBAYARAN (MUNCUL PERTAMA KALI) -->
-    <div id="auth-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+    <!-- MODAL POPUP VERIFIKASI EMAIL -->
+    <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
         <div class="bg-[#181818] border border-zinc-800 max-w-md w-full p-8 rounded-xl shadow-2xl animate-fade-in text-center relative">
-            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-[#E50914] text-white p-3 rounded-full shadow-lg">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">×</button>
+            
+            <div class="mx-auto bg-[#E50914] text-white p-3 rounded-full shadow-lg w-14 h-14 flex items-center justify-center mb-4">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
             
-            <h2 class="text-3xl text-white mt-4 mb-2 cinematic-title">VERIFIKASI AKSES</h2>
-            <p class="text-gray-400 text-xs mb-6">Masukkan email yang Anda gunakan saat melakukan pembayaran melalui Lynk.id untuk membuka kalkulator.</p>
+            <h2 class="text-3xl text-white mb-2 cinematic-title">BUKA EPISODE FINAL</h2>
+            <p class="text-gray-400 text-xs mb-6">Masukkan email terdaftar Anda untuk melihat hasil analisa kewajaran harga.</p>
             
             <div class="space-y-4 text-left">
                 <div>
@@ -155,37 +117,33 @@
                     <input type="email" id="emailInput" placeholder="contoh: emailanda@gmail.com" class="w-full p-3 bg-zinc-900 border border-zinc-700 text-white rounded-lg text-sm focus:outline-none focus:border-[#E50914]">
                 </div>
                 
-                <button onclick="cekAksesEmail()" class="w-full bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 rounded-lg transition cinematic-title text-lg tracking-wider">
-                    Cek & Cocokkan Email
+                <button onclick="submitVerifikasi()" class="w-full bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 rounded-lg transition cinematic-title text-lg tracking-wider">
+                    Cek & Buka Analisa
                 </button>
 
                 <div id="statusBox" class="hidden p-3 rounded-lg text-xs text-center font-medium"></div>
 
                 <div class="relative flex py-2 items-center">
                     <div class="flex-grow border-t border-zinc-800"></div>
-                    <span class="flex-shrink mx-4 text-gray-500 text-[10px] uppercase">Atau Belum Punya Akses?</span>
+                    <span class="flex-shrink mx-4 text-gray-500 text-[10px] uppercase">Belum Punya Akses?</span>
                     <div class="flex-grow border-t border-zinc-800"></div>
                 </div>
 
-                <a href="https://lynk.id/thinksforward" target="_blank" class="w-full block text-center bg-[#0071eb] hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition text-sm">
-                    🚀 Beli Akses Instan via Lynk.id
+                <a href="https://lynk.id/nanbe/z6x97m67pm49" target="_blank" class="w-full block text-center bg-[#0071eb] hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition text-sm">
+                    🚀 Beli Akses via Lynk.id
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- TAHAP 2: APLIKASI UTAMA (TERSEMBUNYI SEBELUM VERIFIKASI BERHASIL) -->
-    <div id="main-app" class="hidden">
-        <!-- Hero Section (Three.js Canvas Background) -->
+    <!-- APLIKASI UTAMA -->
+    <div id="main-app">
+        <!-- Hero Section -->
         <div class="relative w-full h-[50vh] md:h-[65vh] flex items-end overflow-hidden">
-            
-            <!-- Three.js Container -->
             <div id="canvas-container" class="absolute inset-0 z-0"></div>
-            
             <div class="absolute inset-0 hero-vignette z-0"></div>
             <div class="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/70 to-transparent hidden md:block z-0"></div>
 
-            <!-- Hero Content -->
             <div class="relative z-10 w-full px-4 md:px-12 pb-8 md:pb-12 max-w-2xl animate-fade-in">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="bg-[#E50914] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">N</span>
@@ -197,69 +155,54 @@
                 <p class="text-sm md:text-base text-gray-300 drop-shadow-md font-light mb-4 leading-relaxed max-w-lg">
                     Pilih seri kerusakan perabotanmu di bawah ini. Algoritma Pak Nanbe akan membongkar rahasia estimasi harga komponen dan ongkos tukang yang paling wajar.
                 </p>
-                <div class="flex items-center gap-4">
-                    <button onclick="logoutSession()" class="text-xs text-gray-400 hover:text-white underline">Ganti / Keluar Email</button>
-                </div>
             </div>
         </div>
 
-        <!-- Main Content / Slideshow Series -->
+        <!-- Slideshow Series Rows -->
         <div class="relative z-20 px-4 md:px-12 -mt-4">
-            
             <!-- Row 1: Kategori -->
             <div class="mb-8">
                 <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 1: Kategori Masalah</h2>
-                <div id="row-kategori" class="carousel-container">
-                    <!-- Diisi oleh JS -->
-                </div>
+                <div id="row-kategori" class="carousel-container"></div>
             </div>
 
-            <!-- Row 2: Barang (Hidden default) -->
+            <!-- Row 2: Barang -->
             <div id="section-barang" class="mb-8 hidden animate-fade-in">
                 <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 2: Objek Kerusakan</h2>
-                <div id="row-barang" class="carousel-container">
-                    <!-- Diisi oleh JS -->
-                </div>
+                <div id="row-barang" class="carousel-container"></div>
             </div>
 
-            <!-- Row 3: Gejala (Hidden default) -->
+            <!-- Row 3: Gejala -->
             <div id="section-gejala" class="mb-8 hidden animate-fade-in">
                 <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 3: Sinopsis Gejala</h2>
-                <div id="row-gejala" class="carousel-container">
-                    <!-- Diisi oleh JS -->
-                </div>
+                <div id="row-gejala" class="carousel-container"></div>
             </div>
 
-            <!-- Result Box (Hidden by default) -->
+            <!-- Result Box -->
             <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto">
                 <h2 class="text-3xl text-white mb-4 cinematic-title text-center"><span class="text-[#E50914]">EPISODE FINAL:</span> HASIL ANALISA</h2>
                 
                 <div class="bg-[#181818] border border-zinc-800 rounded-lg shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in">
-                    
-                    <!-- SVG Pak Nanbe Profile -->
                     <div class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800">
                         <div class="absolute top-4 left-4 z-10">
                             <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded">PAK NANBE (EXPERT)</span>
                         </div>
-                        <!-- Inline SVG Kucing Oren (Pak Nanbe) -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-48 h-48 drop-shadow-2xl">
-                            <circle cx="50" cy="50" r="45" fill="#f97316"/> <!-- Orange Base -->
-                            <polygon points="15,20 30,35 15,45" fill="#ea580c"/> <!-- Ear L -->
-                            <polygon points="85,20 70,35 85,45" fill="#ea580c"/> <!-- Ear R -->
-                            <circle cx="35" cy="45" r="5" fill="#fff"/> <!-- Eye L -->
-                            <circle cx="65" cy="45" r="5" fill="#fff"/> <!-- Eye R -->
-                            <circle cx="35" cy="45" r="2" fill="#000"/> <!-- Pupil L -->
-                            <circle cx="65" cy="45" r="2" fill="#000"/> <!-- Pupil R -->
-                            <path d="M45,55 Q50,60 55,55" stroke="#fff" stroke-width="2" fill="none"/> <!-- Mouth -->
-                            <polygon points="48,50 52,50 50,53" fill="#ea580c"/> <!-- Nose -->
-                            <!-- Glasses -->
+                            <circle cx="50" cy="50" r="45" fill="#f97316"/>
+                            <polygon points="15,20 30,35 15,45" fill="#ea580c"/>
+                            <polygon points="85,20 70,35 85,45" fill="#ea580c"/>
+                            <circle cx="35" cy="45" r="5" fill="#fff"/>
+                            <circle cx="65" cy="45" r="5" fill="#fff"/>
+                            <circle cx="35" cy="45" r="2" fill="#000"/>
+                            <circle cx="65" cy="45" r="2" fill="#000"/>
+                            <path d="M45,55 Q50,60 55,55" stroke="#fff" stroke-width="2" fill="none"/>
+                            <polygon points="48,50 52,50 50,53" fill="#ea580c"/>
                             <circle cx="35" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
                             <circle cx="65" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
                             <line x1="45" y1="45" x2="55" y2="45" stroke="#333" stroke-width="2"/>
                         </svg>
                     </div>
 
-                    <!-- Result Details -->
                     <div class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818]">
                         <div class="flex flex-wrap items-center justify-between mb-5 gap-3">
                             <div class="flex gap-2 flex-wrap items-center">
@@ -267,7 +210,6 @@
                                 <span class="text-gray-400 text-xs border border-gray-600 px-1.5 py-0.5 rounded-sm">Umur Normal: <span id="res-umur" class="text-gray-200 font-semibold">-</span></span>
                                 <span class="text-blue-400 text-xs border border-blue-600 px-1.5 py-0.5 rounded-sm">Sisa: <span id="res-sisa" class="text-blue-200 font-semibold">-</span></span>
                             </div>
-                            <!-- Harga Beli Comparison -->
                             <div class="text-right">
                                 <span class="text-xs text-gray-500 block">Perkiraan Harga Beli Baru</span>
                                 <span id="res-beli" class="text-sm font-bold text-gray-300 line-through"></span>
@@ -298,7 +240,6 @@
                             <p class="text-gray-200 text-sm leading-relaxed font-light" id="res-saran"></p>
                         </div>
 
-                        <!-- Action Button -->
                         <a id="btn-search-maps" href="#" target="_blank" class="w-full block text-center bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 px-4 rounded transition duration-300 cinematic-title text-xl tracking-wider">
                             <span class="flex items-center justify-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -311,40 +252,44 @@
         </div>
     </div>
 
-    <!-- JavaScript Application Logic -->
+    <!-- Application Script -->
     <script>
-        // === URL CLOUDFLARE WORKER & SHEETS ===
         const WORKER_URL = "https://api-antigetok.thinksforward.workers.dev/cek-akses";
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQpG2blnISqZ66WXTq7WTpbSoeamPXPoFKcwKV2SAICOeV-7jUpCN4Bsn8PeUjXyVXys-9V_2why6L0/pub?gid=0&single=true&output=csv";
         const SHEET_ID = "1zQqtXfcD6e5jFc5eWbPUJSxQkqeiTOJbnk76tPyMJHs";
 
-        // === 1. LOGIKA VERIFIKASI EMAIL & CLOUDFLARE WORKER ===
+        let pendingGjlKey = null;
+        let pendingCardEl = null;
+
         window.addEventListener('DOMContentLoaded', () => {
-            const savedEmail = localStorage.getItem("antigetok_email");
-            if (savedEmail) {
-                document.getElementById("emailInput").value = savedEmail;
-                cekAksesEmail(true); // Auto-login silent jika sudah pernah verifikasi
-            }
+            initThreeJS();
+            renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+            syncGoogleSheets();
+            checkSavedSessionUI();
         });
 
-        async function cekAksesEmail(isAuto = false) {
+        function checkSavedSessionUI() {
+            const saved = localStorage.getItem("antigetok_email");
+            if(saved) {
+                document.getElementById('user-status').innerText = `👤 ${saved}`;
+                document.getElementById('btn-logout').classList.remove('hidden');
+            }
+        }
+
+        async function submitVerifikasi() {
             const email = document.getElementById("emailInput").value.trim().toLowerCase();
             const statusBox = document.getElementById("statusBox");
 
             if (!email) {
-                if (!isAuto) {
-                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
-                    statusBox.innerText = "❌ Mohon masukkan alamat email Anda!";
-                    statusBox.classList.remove("hidden");
-                }
+                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                statusBox.innerText = "❌ Mohon masukkan alamat email Anda!";
+                statusBox.classList.remove("hidden");
                 return;
             }
 
-            if (!isAuto) {
-                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-amber-950 text-amber-400 border border-amber-800";
-                statusBox.innerText = "⏳ Sedang mencocokkan email ke server database...";
-                statusBox.classList.remove("hidden");
-            }
+            statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-amber-950 text-amber-400 border border-amber-800";
+            statusBox.innerText = "⏳ Sedang mencocokkan email ke server...";
+            statusBox.classList.remove("hidden");
 
             try {
                 const response = await fetch(WORKER_URL, {
@@ -356,80 +301,63 @@
                 const result = await response.json();
 
                 if (result.lunas === true) {
-                    if (!isAuto) {
-                        statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-green-950 text-green-400 border border-green-800";
-                        statusBox.innerText = "✅ Pencocokan Berhasil! Membuka aplikasi...";
-                    }
+                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-green-950 text-green-400 border border-green-800";
+                    statusBox.innerText = "✅ Verifikasi Berhasil! Membuka hasil...";
                     
                     setTimeout(() => {
                         localStorage.setItem("antigetok_email", email);
-                        document.getElementById("auth-gate").classList.add("hidden");
-                        document.getElementById("main-app").classList.remove("hidden");
-                        // Inisialisasi animasi & data setelah app terbuka
-                        initThreeJS();
-                        renderCards(elRowKat, db, handleKatClick, icons.elektronik);
-                        syncGoogleSheets();
-                    }, isAuto ? 0 : 800);
+                        closeModal();
+                        checkSavedSessionUI();
+                        if (pendingGjlKey && pendingCardEl) {
+                            executeShowResult(pendingGjlKey, pendingCardEl);
+                        }
+                    }, 700);
 
                 } else {
-                    if (!isAuto) {
-                        statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
-                        statusBox.innerText = "❌ Email belum terdaftar atau pembayaran belum lunas. Silakan beli akses via Lynk.id.";
-                    }
+                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                    statusBox.innerText = "❌ Email belum terdaftar atau belum lunas. Silakan beli via Lynk.id.";
                 }
             } catch (err) {
-                if (!isAuto) {
-                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
-                    statusBox.innerText = "❌ Gagal terhubung ke Cloudflare Worker. Periksa koneksi Anda.";
-                }
+                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                statusBox.innerText = "❌ Gagal terhubung ke Cloudflare Worker.";
             }
+        }
+
+        function closeModal() {
+            document.getElementById("auth-modal").classList.add("hidden");
+            document.getElementById("statusBox").classList.add("hidden");
+            document.getElementById("emailInput").value = "";
         }
 
         function logoutSession() {
             localStorage.removeItem("antigetok_email");
-            document.getElementById("main-app").classList.add("hidden");
-            document.getElementById("auth-gate").classList.remove("hidden");
-            document.getElementById("emailInput").value = "";
-            document.getElementById("statusBox").classList.add("hidden");
+            document.getElementById('user-status').innerText = "";
+            document.getElementById('btn-logout').classList.add('hidden');
+            alert("Sesi email telah dihapus.");
         }
 
-        // === 2. THREE.JS BACKGROUND ANIMATION ===
         function initThreeJS() {
             const container = document.getElementById('canvas-container');
             if(!container || container.children.length > 0) return;
-            
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
             camera.position.z = 30;
-
             const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             container.appendChild(renderer.domElement);
 
             const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-            const material = new THREE.MeshBasicMaterial({ 
-                color: 0xE50914,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.15
-            });
+            const material = new THREE.MeshBasicMaterial({ color: 0xE50914, wireframe: true, transparent: true, opacity: 0.15 });
             const torusKnot = new THREE.Mesh(geometry, material);
             scene.add(torusKnot);
 
             const particlesGeometry = new THREE.BufferGeometry();
             const particlesCount = 200;
             const posArray = new Float32Array(particlesCount * 3);
-            for(let i = 0; i < particlesCount * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 60;
-            }
+            for(let i = 0; i < particlesCount * 3; i++) posArray[i] = (Math.random() - 0.5) * 60;
             particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const particlesMaterial = new THREE.PointsMaterial({
-                size: 0.2,
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.4
-            });
+            const particlesMaterial = new THREE.PointsMaterial({ size: 0.2, color: 0xffffff, transparent: true, opacity: 0.4 });
             const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
             scene.add(particlesMesh);
 
@@ -440,17 +368,14 @@
                 particlesMesh.rotation.y -= 0.001;
                 renderer.render(scene, camera);
             }
-
             window.addEventListener('resize', () => {
                 camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(container.clientWidth, container.clientHeight);
             });
-
             animate();
         }
 
-        // === 3. DATABASE KOMPREHENSIF BAWAAN + GOOGLE SHEETS ===
         const icons = {
             elektronik: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><circle cx="12" cy="10" r="2" class="motion-pulse" fill="#E50914" stroke="none"/></svg>`,
             pribadi: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>`,
@@ -468,16 +393,13 @@
                         label: "AC (Air Conditioner)", 
                         umurNormal: "8 - 10 Tahun",
                         gejala: { 
-                            "tdkdingin": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Kompresor Lemah", harga: 150000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "3 - 5 Tahun lagi", keputusan: "servis", saran: "Angin keluar tapi tidak dingin. Kompresor tidak mau angkat karena kapasitor melemah. Wajib ganti kapasitor original, bukan servis gulung." },
-                            "bocorair": { level: "ringan", levelLabel: "Ringan", part: "Pipa Pembuangan Mampet (Sludge)", harga: 0, ongkos: 75000, hargaBaru: 3500000, umurSisa: "5+ Tahun lagi", keputusan: "servis", saran: "Air menetes di indoor. Biasanya lumut menumpuk menyumbat jalur pembuangan. Cukup ditiup/tembak dengan selang air." },
-                            "freonbocor": { level: "berat", levelLabel: "Berat", part: "Pipa Evaporator Berlubang / Las Bocor", harga: 250000, ongkos: 250000, hargaBaru: 3500000, umurSisa: "< 1 Tahun (Rawan Bocor Ulang)", keputusan: "pertimbangkan", saran: "Freon habis total. Minta tukang las cari titik bocor dengan tekanan angin dulu, jangan langsung isi freon baru." }
+                            "tdkdingin": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Kompresor Lemah", harga: 150000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "3 - 5 Tahun lagi", keputusan: "servis", saran: "Angin keluar tapi tidak dingin. Wajib ganti kapasitor original." }
                         }
                     }
                 }
             }
         };
 
-        // Fungsi Sinkronisasi & Rendering Katalog
         function normalizeKey(str) { return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
         function mergeRowsToDB(rows) {
             let addedCount = 0;
@@ -574,7 +496,6 @@
             }
         }
 
-        // === 4. NAVIGASI UI KATALOG ===
         let selectedKat = null, selectedBrg = null;
         const elRowKat = document.getElementById('row-kategori');
         const elRowBrg = document.getElementById('row-barang');
@@ -624,13 +545,24 @@
                     <div class="font-semibold text-xs mt-2 line-clamp-2 text-gray-200 pointer-events-none">${gObj.gejalaText || gObj.part}</div>
                     <div class="text-[10px] text-orange-400 mt-1 pointer-events-none">Klik Analisa →</div>
                 `;
-                card.onclick = () => handleGjlClick(gKey, card);
+                card.onclick = () => requestAnalisa(gKey, card);
                 elRowGjl.appendChild(card);
             }
             sectionGjl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        function handleGjlClick(key, cardElement) {
+        function requestAnalisa(gKey, cardElement) {
+            const savedEmail = localStorage.getItem("antigetok_email");
+            if (savedEmail) {
+                executeShowResult(gKey, cardElement);
+            } else {
+                pendingGjlKey = gKey;
+                pendingCardEl = cardElement;
+                document.getElementById("auth-modal").classList.remove("hidden");
+            }
+        }
+
+        function executeShowResult(key, cardElement) {
             Array.from(elRowGjl.children).forEach(c => c.classList.remove('active'));
             cardElement.classList.add('active');
             const itemData = db[selectedKat].barang[selectedBrg];
