@@ -19,8 +19,12 @@
         .hidden { display: none !important; }
         .result-box { background: #e8f8f5; border: 1px solid #a3e4d7; padding: 15px; border-radius: 8px; margin-top: 20px; }
         .result-box p { margin-bottom: 8px; font-size: 14px; }
-        .loading { text-align: center; font-style: italic; color: #7f8c8d; margin-top: 10px; }
-        .error-msg { color: #c0392b; font-size: 13px; margin-top: 5px; text-align: center; }
+        
+        /* Kotak Status Informasi */
+        .status-box { margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.4; text-align: center; }
+        .status-loading { background: #fef9e7; border: 1px solid #f9e79f; color: #b7950b; }
+        .status-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; font-weight: bold; }
+        .status-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
     </style>
 </head>
 <body>
@@ -31,15 +35,16 @@
         <!-- TAHAP 1: FORM CEK AKSES / EMAIL -->
         <div id="auth-section">
             <p style="text-align: center; margin-bottom: 15px; font-size: 14px; color: #666;">
-                Masukkan email yang Anda gunakan saat membeli akses atau melakukan pembayaran via Lynk.id.
+                Masukkan email terdaftar Anda untuk mulai mencocokkan akses dengan database.
             </p>
             <div class="form-group">
                 <label for="emailInput">Email Terdaftar:</label>
-                <input type="email" id="emailInput" placeholder="contoh: emailanda@gmail.com" required>
+                <input type="email" id="emailInput" placeholder="contoh: thinksforward@gmail.com" required>
             </div>
-            <button onclick="cekAkses()">Lanjutkan Analisa</button>
-            <div id="loadingText" class="loading hidden">Mengecek status akses ke server...</div>
-            <div id="errorMsg" class="error-msg"></div>
+            <button onclick="cekAkses()">Cek & Cocokkan Email</button>
+
+            <!-- Elemen Keterangan Status Pencocokan -->
+            <div id="statusBox" class="status-box hidden"></div>
 
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
             
@@ -47,10 +52,10 @@
             <a href="https://lynk.id/thinksforward" target="_blank" class="btn-lynk">Beli Akses via Lynk.id 🚀</a>
         </div>
 
-        <!-- TAHAP 2: HALAMAN UTAMA KALKULATOR (TERKUNCI SEBELUM BAYAR) -->
+        <!-- TAHAP 2: HALAMAN UTAMA KALKULATOR -->
         <div id="calculator-section" class="hidden">
             <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px; font-size: 13px; font-weight: bold;">
-                ✅ Akses Aktif & Terverifikasi
+                ✅ Pencocokan Berhasil! Akses Terbuka.
             </div>
 
             <div class="form-group">
@@ -82,27 +87,21 @@
     <script>
         const WORKER_URL = "https://api-antigetok.thinksforward.workers.dev/cek-akses";
 
-        // Cek otomatis jika sebelumnya sudah pernah verifikasi di browser ini
-        window.onload = function() {
-            const savedEmail = localStorage.getItem("antigetok_email");
-            if (savedEmail) {
-                document.getElementById("emailInput").value = savedEmail;
-                cekAkses(true); // Auto check silent
-            }
-        };
-
-        async function cekAkses(isAuto = false) {
+        async function cekAkses() {
             const email = document.getElementById("emailInput").value.trim().toLowerCase();
-            const loadingText = document.getElementById("loadingText");
-            const errorMsg = document.getElementById("errorMsg");
+            const statusBox = document.getElementById("statusBox");
 
             if (!email) {
-                if (!isAuto) errorMsg.innerText = "Mohon masukkan alamat email Anda!";
+                statusBox.className = "status-box status-error";
+                statusBox.innerText = "❌ Gagal: Mohon ketik alamat email Anda terlebih dahulu!";
+                statusBox.classList.remove("hidden");
                 return;
             }
 
-            errorMsg.innerText = "";
-            loadingText.classList.remove("hidden");
+            // Tampilkan status sedang mencocokkan
+            statusBox.className = "status-box status-loading";
+            statusBox.innerText = "⏳ Sedang mencocokkan email ke server & database...";
+            statusBox.classList.remove("hidden");
 
             try {
                 const response = await fetch(WORKER_URL, {
@@ -112,25 +111,25 @@
                 });
 
                 const result = await response.json();
-                loadingText.classList.add("hidden");
 
                 if (result.lunas === true) {
-                    // Simpan sesi ke browser
-                    localStorage.setItem("antigetok_email", email);
+                    statusBox.className = "status-box status-success";
+                    statusBox.innerText = "✅ Pencocokan Berhasil! Membuka kalkulator...";
                     
-                    // Buka tampilan kalkulator
-                    document.getElementById("auth-section").classList.add("hidden");
-                    document.getElementById("calculator-section").classList.remove("hidden");
+                    // Beri jeda 1 detik agar pengguna sempat membaca pesan sukses, lalu buka halaman utama
+                    setTimeout(() => {
+                        localStorage.setItem("antigetok_email", email);
+                        document.getElementById("auth-section").classList.add("hidden");
+                        document.getElementById("calculator-section").classList.remove("hidden");
+                    }, 1000);
+
                 } else {
-                    if (!isAuto) {
-                        errorMsg.innerHTML = "Email belum terdaftar atau pembayaran belum dikonfirmasi.<br>Silakan lakukan pembelian via Lynk.id terlebih dahulu.";
-                    }
+                    statusBox.className = "status-box status-error";
+                    statusBox.innerText = "❌ Pencocokan Gagal: Email '" + email + "' tidak ditemukan atau belum lunas di database.";
                 }
             } catch (err) {
-                loadingText.classList.add("hidden");
-                if (!isAuto) {
-                    errorMsg.innerText = "Gagal terhubung ke server. Periksa koneksi internet Anda.";
-                }
+                statusBox.className = "status-box status-error";
+                statusBox.innerText = "❌ Error Sistem: Gagal terhubung ke Cloudflare Worker. (" + err.message + ")";
             }
         }
 
@@ -144,7 +143,7 @@
 
             document.getElementById("resKeputusan").innerText = "Wajar / Layak Servis";
             document.getElementById("resTotal").innerText = "Rp " + totalWajar.toLocaleString("id-ID");
-            document.getElementById("resSaran").innerText = "Harga komponen dan jasa masih dalam batas wajar standar perbaikan.";
+            document.getElementById("resSaran").innerText = "Komponen dan tarif jasa berada dalam batas wajar.";
         }
 
         function logoutSession() {
@@ -152,6 +151,7 @@
             document.getElementById("calculator-section").classList.add("hidden");
             document.getElementById("auth-section").classList.remove("hidden");
             document.getElementById("emailInput").value = "";
+            document.getElementById("statusBox").classList.add("hidden");
         }
     </script>
 </body>
