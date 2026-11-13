@@ -3,159 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Anti-Getok Servis</title>
+    <title>Kalkulator Servis Pak Nanbe - Anti Getok</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load font Inter & Bebas Neue -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { 
-            background: linear-gradient(135deg, #141414 0%, #1f1f1f 100%); 
-            color: #e50914; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #141414; /* Netflix dark */
+            color: #e5e5e5;
+            overflow-x: hidden;
         }
-        .container { 
-            background: rgba(20, 20, 20, 0.95); 
-            border: 1px solid #333;
-            width: 100%; 
-            max-width: 500px; 
-            padding: 30px; 
-            border-radius: 12px; 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.7); 
-            color: #fff;
-        }
-        h2 { text-align: center; margin-bottom: 20px; color: #e50914; font-size: 24px; letter-spacing: 0.5px; }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #b3b3b3; }
-        input, select { 
-            width: 100%; 
-            padding: 14px; 
-            background: #333;
-            border: 1px solid #444; 
-            color: #fff;
-            border-radius: 6px; 
-            font-size: 15px; 
-        }
-        input:focus, select:focus { outline: none; border-color: #e50914; }
-        button { 
-            width: 100%; 
-            padding: 14px; 
-            background-color: #e50914; 
-            color: white; 
-            border: none; 
-            border-radius: 6px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: background 0.3s; 
-            margin-top: 10px; 
-        }
-        button:hover { background-color: #b20710; }
-        .btn-lynk { 
-            background-color: #0071eb; 
-            margin-top: 15px; 
-            text-decoration: none; 
-            display: block; 
-            text-align: center; 
-            color: white; 
-            padding: 14px; 
-            border-radius: 6px; 
-            font-weight: bold; 
-        }
-        .btn-lynk:hover { background-color: #005bb5; }
-        .hidden { display: none !important; }
         
-        .result-box { 
-            background: #222; 
-            border: 1px solid #e50914; 
-            padding: 18px; 
-            border-radius: 8px; 
-            margin-top: 20px; 
+        h1, h2, .cinematic-title {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
         }
-        .result-box p { margin-bottom: 10px; font-size: 15px; color: #fff; }
-        .result-box span { color: #46d369; font-weight: bold; }
+
+        /* Netflix Carousel Styling */
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding-bottom: 16px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none; /* Firefox */
+        }
+        .carousel-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        .nf-card {
+            min-width: 240px;
+            max-width: 240px;
+            height: 135px; /* 16:9 aspect ratio */
+            background-color: #262626;
+            border-radius: 6px;
+            scroll-snap-align: start;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .nf-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+            border-color: #404040;
+        }
         
-        .status-box { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.4; text-align: center; }
-        .status-loading { background: #332701; border: 1px solid #b7950b; color: #f1c40f; }
-        .status-success { background: #0e3b1c; border: 1px solid #27ae60; color: #2ecc71; font-weight: bold; }
-        .status-error { background: #3b0e0e; border: 1px solid #c0392b; color: #e74c3c; }
+        .nf-card.active {
+            border-color: #E50914;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
+        }
+
+        .nf-card-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        
+        .nf-card:hover .nf-card-bg, .nf-card.active .nf-card-bg {
+            opacity: 1;
+        }
+
+        .nf-card-title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+            font-weight: 600;
+            font-size: 14px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* Hero Gradient Fade */
+        .hero-vignette {
+            background: linear-gradient(to top, #141414 0%, transparent 100%);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* 2D Motion Graphics Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px rgba(229,9,20,0.5)); }
+            50% { opacity: 0.6; filter: drop-shadow(0 0 15px rgba(229,9,20,0.8)); }
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes swing {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .motion-float { animation: float 3s ease-in-out infinite; }
+        .motion-pulse { animation: pulse-glow 2s ease-in-out infinite; }
+        .motion-spin { animation: spin-slow 8s linear infinite; }
+        .motion-swing { animation: swing 2.5s ease-in-out infinite; }
     </style>
 </head>
-<body>
+<body class="antialiased min-h-screen relative pb-20">
 
-    <div class="container">
-        <h2>🎬 Kalkulator Anti-Getok Servis</h2>
-
-        <!-- TAHAP 1: FORM CEK AKSES / EMAIL -->
-        <div id="auth-section">
-            <p style="text-align: center; margin-bottom: 20px; font-size: 14px; color: #b3b3b3;">
-                Masukkan email terdaftar Anda untuk membuka akses kalkulator.
-            </p>
-            <div class="form-group">
-                <label for="emailInput">Email Terdaftar:</label>
-                <input type="email" id="emailInput" placeholder="contoh: thinksforward@gmail.com" required>
-            </div>
-            <button onclick="cekAkses()">Cek & Cocokkan Email</button>
-
-            <div id="statusBox" class="status-box hidden"></div>
-
-            <hr style="margin: 25px 0; border: none; border-top: 1px solid #333;">
-            
-            <p style="text-align: center; font-size: 13px; color: #b3b3b3;">Belum punya akses / kuota analisa?</p>
-            <a href="https://lynk.id/thinksforward" target="_blank" class="btn-lynk">Beli Akses via Lynk.id 🚀</a>
+    <!-- Navbar -->
+    <nav class="absolute top-0 w-full z-50 p-4 md:px-12 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+        <div class="text-[#E50914] font-bold text-3xl cinematic-title tracking-wider">NANBE.TIPS</div>
+        <div class="flex items-center gap-3">
+            <span id="sync-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-zinc-800 text-gray-300 border border-zinc-700">SYNCING...</span>
+            <div class="text-xs md:text-sm font-semibold text-gray-300 hidden sm:block">INTERACTIVE SERIES</div>
         </div>
+    </nav>
 
-        <!-- TAHAP 2: HALAMAN UTAMA KALKULATOR -->
-        <div id="calculator-section" class="hidden">
-            <div style="background: #0e3b1c; color: #2ecc71; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 20px; font-size: 13px; font-weight: bold; border: 1px solid #27ae60;">
-                ✅ Akses Terverifikasi & Aktif
-            </div>
-
-            <div class="form-group">
-                <label>Pilih Kerusakan / Komponen:</label>
-                <select id="komponen">
-                    <option value="150000">Kapasitor / Modul Ringan (Estimasi: Rp 150rb)</option>
-                    <option value="450000">Dinamo / Kompresor (Estimasi: Rp 450rb)</option>
-                    <option value="850000">Modul Utama / PCB (Estimasi: Rp 850rb)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Tarif Jasa Teknisi di Tempat:</label>
-                <input type="number" id="ongkos" placeholder="Contoh: 75000" value="50000">
-            </div>
-
-            <button onclick="hitungPerbaikan()">Hitung Kewajaran Harga</button>
-
-            <div id="hasilAnalisis" class="result-box hidden">
-                <p><strong>Rekomendasi Keputusan:</strong> <span id="resKeputusan">-</span></p>
-                <p><strong>Wajar Total Biaya:</strong> <span id="resTotal">-</span></p>
-                <p><strong>Saran Tindakan:</strong> <span id="resSaran">-</span></p>
+    <!-- TAHAP 1: GATEWAY VERIFIKASI EMAIL / PEMBAYARAN (MUNCUL PERTAMA KALI) -->
+    <div id="auth-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+        <div class="bg-[#181818] border border-zinc-800 max-w-md w-full p-8 rounded-xl shadow-2xl animate-fade-in text-center relative">
+            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-[#E50914] text-white p-3 rounded-full shadow-lg">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
             
-            <button onclick="logoutSession()" style="background-color: #333; color: #b3b3b3; margin-top: 25px; font-size: 13px; padding: 10px;">Ganti / Keluar Email</button>
+            <h2 class="text-3xl text-white mt-4 mb-2 cinematic-title">VERIFIKASI AKSES</h2>
+            <p class="text-gray-400 text-xs mb-6">Masukkan email yang Anda gunakan saat melakukan pembayaran melalui Lynk.id untuk membuka kalkulator.</p>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">EMAIL TERDAFTAR</label>
+                    <input type="email" id="emailInput" placeholder="contoh: emailanda@gmail.com" class="w-full p-3 bg-zinc-900 border border-zinc-700 text-white rounded-lg text-sm focus:outline-none focus:border-[#E50914]">
+                </div>
+                
+                <button onclick="cekAksesEmail()" class="w-full bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 rounded-lg transition cinematic-title text-lg tracking-wider">
+                    Cek & Cocokkan Email
+                </button>
+
+                <div id="statusBox" class="hidden p-3 rounded-lg text-xs text-center font-medium"></div>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-zinc-800"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-[10px] uppercase">Atau Belum Punya Akses?</span>
+                    <div class="flex-grow border-t border-zinc-800"></div>
+                </div>
+
+                <a href="https://lynk.id/thinksforward" target="_blank" class="w-full block text-center bg-[#0071eb] hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition text-sm">
+                    🚀 Beli Akses Instan via Lynk.id
+                </a>
+            </div>
         </div>
     </div>
 
-    <script>
-        const WORKER_URL = "https://api-antigetok.thinksforward.workers.dev/cek-akses";
+    <!-- TAHAP 2: APLIKASI UTAMA (TERSEMBUNYI SEBELUM VERIFIKASI BERHASIL) -->
+    <div id="main-app" class="hidden">
+        <!-- Hero Section (Three.js Canvas Background) -->
+        <div class="relative w-full h-[50vh] md:h-[65vh] flex items-end overflow-hidden">
+            
+            <!-- Three.js Container -->
+            <div id="canvas-container" class="absolute inset-0 z-0"></div>
+            
+            <div class="absolute inset-0 hero-vignette z-0"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/70 to-transparent hidden md:block z-0"></div>
 
-        window.onload = function() {
+            <!-- Hero Content -->
+            <div class="relative z-10 w-full px-4 md:px-12 pb-8 md:pb-12 max-w-2xl animate-fade-in">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-[#E50914] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">N</span>
+                    <span class="text-gray-300 text-xs tracking-widest uppercase font-semibold">Tontonan Wajib Emak-emak</span>
+                </div>
+                <h1 class="text-5xl md:text-7xl text-white drop-shadow-lg mb-2 leading-none shadow-black cinematic-title">
+                    ANTI-GETOK <br><span class="text-4xl md:text-5xl text-gray-300">KALKULATOR</span>
+                </h1>
+                <p class="text-sm md:text-base text-gray-300 drop-shadow-md font-light mb-4 leading-relaxed max-w-lg">
+                    Pilih seri kerusakan perabotanmu di bawah ini. Algoritma Pak Nanbe akan membongkar rahasia estimasi harga komponen dan ongkos tukang yang paling wajar.
+                </p>
+                <div class="flex items-center gap-4">
+                    <button onclick="logoutSession()" class="text-xs text-gray-400 hover:text-white underline">Ganti / Keluar Email</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content / Slideshow Series -->
+        <div class="relative z-20 px-4 md:px-12 -mt-4">
+            
+            <!-- Row 1: Kategori -->
+            <div class="mb-8">
+                <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 1: Kategori Masalah</h2>
+                <div id="row-kategori" class="carousel-container">
+                    <!-- Diisi oleh JS -->
+                </div>
+            </div>
+
+            <!-- Row 2: Barang (Hidden default) -->
+            <div id="section-barang" class="mb-8 hidden animate-fade-in">
+                <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 2: Objek Kerusakan</h2>
+                <div id="row-barang" class="carousel-container">
+                    <!-- Diisi oleh JS -->
+                </div>
+            </div>
+
+            <!-- Row 3: Gejala (Hidden default) -->
+            <div id="section-gejala" class="mb-8 hidden animate-fade-in">
+                <h2 class="text-xl text-white mb-3 cinematic-title border-l-4 border-[#E50914] pl-3">Musim 3: Sinopsis Gejala</h2>
+                <div id="row-gejala" class="carousel-container">
+                    <!-- Diisi oleh JS -->
+                </div>
+            </div>
+
+            <!-- Result Box (Hidden by default) -->
+            <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto">
+                <h2 class="text-3xl text-white mb-4 cinematic-title text-center"><span class="text-[#E50914]">EPISODE FINAL:</span> HASIL ANALISA</h2>
+                
+                <div class="bg-[#181818] border border-zinc-800 rounded-lg shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in">
+                    
+                    <!-- SVG Pak Nanbe Profile -->
+                    <div class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800">
+                        <div class="absolute top-4 left-4 z-10">
+                            <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded">PAK NANBE (EXPERT)</span>
+                        </div>
+                        <!-- Inline SVG Kucing Oren (Pak Nanbe) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-48 h-48 drop-shadow-2xl">
+                            <circle cx="50" cy="50" r="45" fill="#f97316"/> <!-- Orange Base -->
+                            <polygon points="15,20 30,35 15,45" fill="#ea580c"/> <!-- Ear L -->
+                            <polygon points="85,20 70,35 85,45" fill="#ea580c"/> <!-- Ear R -->
+                            <circle cx="35" cy="45" r="5" fill="#fff"/> <!-- Eye L -->
+                            <circle cx="65" cy="45" r="5" fill="#fff"/> <!-- Eye R -->
+                            <circle cx="35" cy="45" r="2" fill="#000"/> <!-- Pupil L -->
+                            <circle cx="65" cy="45" r="2" fill="#000"/> <!-- Pupil R -->
+                            <path d="M45,55 Q50,60 55,55" stroke="#fff" stroke-width="2" fill="none"/> <!-- Mouth -->
+                            <polygon points="48,50 52,50 50,53" fill="#ea580c"/> <!-- Nose -->
+                            <!-- Glasses -->
+                            <circle cx="35" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
+                            <circle cx="65" cy="45" r="10" stroke="#333" stroke-width="2" fill="none"/>
+                            <line x1="45" y1="45" x2="55" y2="45" stroke="#333" stroke-width="2"/>
+                        </svg>
+                    </div>
+
+                    <!-- Result Details -->
+                    <div class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818]">
+                        <div class="flex flex-wrap items-center justify-between mb-5 gap-3">
+                            <div class="flex gap-2 flex-wrap items-center">
+                                <span id="res-keputusan" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider">SANGAT DISARANKAN: SERVIS</span>
+                                <span class="text-gray-400 text-xs border border-gray-600 px-1.5 py-0.5 rounded-sm">Umur Normal: <span id="res-umur" class="text-gray-200 font-semibold">-</span></span>
+                                <span class="text-blue-400 text-xs border border-blue-600 px-1.5 py-0.5 rounded-sm">Sisa: <span id="res-sisa" class="text-blue-200 font-semibold">-</span></span>
+                            </div>
+                            <!-- Harga Beli Comparison -->
+                            <div class="text-right">
+                                <span class="text-xs text-gray-500 block">Perkiraan Harga Beli Baru</span>
+                                <span id="res-beli" class="text-sm font-bold text-gray-300 line-through"></span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 mb-6 text-sm md:text-base">
+                            <div class="flex justify-between border-b border-zinc-700 pb-3">
+                                <span class="text-gray-400">Komponen Bermasalah</span> 
+                                <span id="res-part" class="text-white font-semibold text-right max-w-[60%] text-orange-400"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-zinc-700 pb-3">
+                                <span class="text-gray-400">Harga Komponen (Estimasi)</span> 
+                                <span id="res-harga" class="text-white font-semibold text-right"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-zinc-700 pb-3">
+                                <span class="text-gray-400">Ongkos Tukang (Wajar)</span> 
+                                <span id="res-ongkos" class="text-white font-semibold text-right"></span>
+                            </div>
+                            <div class="flex justify-between pt-2 items-end">
+                                <span class="text-lg md:text-xl font-bold text-white">Total Maksimal</span> 
+                                <span id="res-total" class="text-2xl md:text-4xl font-bold text-[#E50914] text-right cinematic-title"></span>
+                            </div>
+                        </div>
+
+                        <div class="bg-zinc-800/50 p-4 rounded-md border-l-4 border-orange-500 mb-4">
+                            <p class="text-orange-400 font-bold mb-1 text-xs uppercase tracking-wider">Pesan Sponsor (Pak Nanbe):</p>
+                            <p class="text-gray-200 text-sm leading-relaxed font-light" id="res-saran"></p>
+                        </div>
+
+                        <!-- Action Button -->
+                        <a id="btn-search-maps" href="#" target="_blank" class="w-full block text-center bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 px-4 rounded transition duration-300 cinematic-title text-xl tracking-wider">
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                Cari Jasa Servis Terdekat di Maps
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // === URL CLOUDFLARE WORKER & SHEETS ===
+        const WORKER_URL = "https://api-antigetok.thinksforward.workers.dev/cek-akses";
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQpG2blnISqZ66WXTq7WTpbSoeamPXPoFKcwKV2SAICOeV-7jUpCN4Bsn8PeUjXyVXys-9V_2why6L0/pub?gid=0&single=true&output=csv";
+        const SHEET_ID = "1zQqtXfcD6e5jFc5eWbPUJSxQkqeiTOJbnk76tPyMJHs";
+
+        // === 1. LOGIKA VERIFIKASI EMAIL & CLOUDFLARE WORKER ===
+        window.addEventListener('DOMContentLoaded', () => {
             const savedEmail = localStorage.getItem("antigetok_email");
             if (savedEmail) {
                 document.getElementById("emailInput").value = savedEmail;
-                cekAkses(true);
+                cekAksesEmail(true); // Auto-login silent jika sudah pernah verifikasi
             }
-        };
+        });
 
-        async function cekAkses(isAuto = false) {
+        async function cekAksesEmail(isAuto = false) {
             const email = document.getElementById("emailInput").value.trim().toLowerCase();
             const statusBox = document.getElementById("statusBox");
 
             if (!email) {
                 if (!isAuto) {
-                    statusBox.className = "status-box status-error";
+                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
                     statusBox.innerText = "❌ Mohon masukkan alamat email Anda!";
                     statusBox.classList.remove("hidden");
                 }
@@ -163,8 +341,8 @@
             }
 
             if (!isAuto) {
-                statusBox.className = "status-box status-loading";
-                statusBox.innerText = "⏳ Sedang mencocokkan email ke server...";
+                statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-amber-950 text-amber-400 border border-amber-800";
+                statusBox.innerText = "⏳ Sedang mencocokkan email ke server database...";
                 statusBox.classList.remove("hidden");
             }
 
@@ -179,49 +357,310 @@
 
                 if (result.lunas === true) {
                     if (!isAuto) {
-                        statusBox.className = "status-box status-success";
-                        statusBox.innerText = "✅ Pencocokan Berhasil! Membuka kalkulator...";
+                        statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-green-950 text-green-400 border border-green-800";
+                        statusBox.innerText = "✅ Pencocokan Berhasil! Membuka aplikasi...";
                     }
                     
                     setTimeout(() => {
                         localStorage.setItem("antigetok_email", email);
-                        document.getElementById("auth-section").classList.add("hidden");
-                        document.getElementById("calculator-section").classList.remove("hidden");
+                        document.getElementById("auth-gate").classList.add("hidden");
+                        document.getElementById("main-app").classList.remove("hidden");
+                        // Inisialisasi animasi & data setelah app terbuka
+                        initThreeJS();
+                        renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+                        syncGoogleSheets();
                     }, isAuto ? 0 : 800);
 
                 } else {
                     if (!isAuto) {
-                        statusBox.className = "status-box status-error";
-                        statusBox.innerText = "❌ Email belum terdaftar atau belum lunas.";
+                        statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                        statusBox.innerText = "❌ Email belum terdaftar atau pembayaran belum lunas. Silakan beli akses via Lynk.id.";
                     }
                 }
             } catch (err) {
                 if (!isAuto) {
-                    statusBox.className = "status-box status-error";
-                    statusBox.innerText = "❌ Gagal terhubung ke server worker.";
+                    statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-red-950 text-red-400 border border-red-800";
+                    statusBox.innerText = "❌ Gagal terhubung ke Cloudflare Worker. Periksa koneksi Anda.";
                 }
             }
         }
 
-        function hitungPerbaikan() {
-            const hargaPart = Number(document.getElementById("komponen").value);
-            const ongkosJasa = Number(document.getElementById("ongkos").value) || 0;
-            const totalWajar = hargaPart + ongkosJasa;
-
-            const box = document.getElementById("hasilAnalisis");
-            box.classList.remove("hidden");
-
-            document.getElementById("resKeputusan").innerText = "Wajar / Layak Servis";
-            document.getElementById("resTotal").innerText = "Rp " + totalWajar.toLocaleString("id-ID");
-            document.getElementById("resSaran").innerText = "Komponen dan tarif jasa berada dalam batas wajar.";
-        }
-
         function logoutSession() {
             localStorage.removeItem("antigetok_email");
-            document.getElementById("calculator-section").classList.add("hidden");
-            document.getElementById("auth-section").classList.remove("hidden");
+            document.getElementById("main-app").classList.add("hidden");
+            document.getElementById("auth-gate").classList.remove("hidden");
             document.getElementById("emailInput").value = "";
             document.getElementById("statusBox").classList.add("hidden");
+        }
+
+        // === 2. THREE.JS BACKGROUND ANIMATION ===
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            if(!container || container.children.length > 0) return;
+            
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: 0xE50914,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            const torusKnot = new THREE.Mesh(geometry, material);
+            scene.add(torusKnot);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            const posArray = new Float32Array(particlesCount * 3);
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 60;
+            }
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.2,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.4
+            });
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                torusKnot.rotation.x += 0.002;
+                torusKnot.rotation.y += 0.003;
+                particlesMesh.rotation.y -= 0.001;
+                renderer.render(scene, camera);
+            }
+
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            animate();
+        }
+
+        // === 3. DATABASE KOMPREHENSIF BAWAAN + GOOGLE SHEETS ===
+        const icons = {
+            elektronik: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><circle cx="12" cy="10" r="2" class="motion-pulse" fill="#E50914" stroke="none"/></svg>`,
+            pribadi: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>`,
+            kendaraan: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="7" cy="17" r="2" stroke-width="1.5"/><circle cx="17" cy="17" r="2" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 17H3v-6l2-5h9l4 5h3v6h-2"/></svg>`,
+            rumah: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>`,
+            gejala: `<svg class="w-12 h-12 text-[#E50914] motion-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+        };
+
+        const db = {
+            "elektronik": {
+                label: "Elektronik & Dapur",
+                icon: icons.elektronik,
+                barang: {
+                    "ac": { 
+                        label: "AC (Air Conditioner)", 
+                        umurNormal: "8 - 10 Tahun",
+                        gejala: { 
+                            "tdkdingin": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Kompresor Lemah", harga: 150000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "3 - 5 Tahun lagi", keputusan: "servis", saran: "Angin keluar tapi tidak dingin. Kompresor tidak mau angkat karena kapasitor melemah. Wajib ganti kapasitor original, bukan servis gulung." },
+                            "bocorair": { level: "ringan", levelLabel: "Ringan", part: "Pipa Pembuangan Mampet (Sludge)", harga: 0, ongkos: 75000, hargaBaru: 3500000, umurSisa: "5+ Tahun lagi", keputusan: "servis", saran: "Air menetes di indoor. Biasanya lumut menumpuk menyumbat jalur pembuangan. Cukup ditiup/tembak dengan selang air." },
+                            "freonbocor": { level: "berat", levelLabel: "Berat", part: "Pipa Evaporator Berlubang / Las Bocor", harga: 250000, ongkos: 250000, hargaBaru: 3500000, umurSisa: "< 1 Tahun (Rawan Bocor Ulang)", keputusan: "pertimbangkan", saran: "Freon habis total. Minta tukang las cari titik bocor dengan tekanan angin dulu, jangan langsung isi freon baru." }
+                        }
+                    }
+                }
+            }
+        };
+
+        // Fungsi Sinkronisasi & Rendering Katalog
+        function normalizeKey(str) { return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+        function mergeRowsToDB(rows) {
+            let addedCount = 0;
+            rows.forEach((obj, idx) => {
+                const katRaw = (obj.kategori || '').trim();
+                const brgRaw = (obj.barangid || obj.barang || '').trim();
+                const gjlRaw = (obj.gejalaid || obj.gejala || '').trim();
+                const partRaw = (obj.komponen || obj.part || '').trim();
+                if (!katRaw || !brgRaw || (!gjlRaw && !partRaw)) return;
+                const katKey = normalizeKey(katRaw);
+                const brgKey = normalizeKey(brgRaw);
+                if (!db[katKey]) db[katKey] = { label: katRaw, icon: icons[katKey] || icons.gejala, barang: {} };
+                if (!db[katKey].barang[brgKey]) db[katKey].barang[brgKey] = { label: brgRaw.toUpperCase(), umurNormal: "5 - 8 Tahun", gejala: {} };
+                const tingkatRaw = (obj.tingkat || 'Ringan').trim();
+                const level = tingkatRaw.toLowerCase();
+                const gjlKey = normalizeKey(gjlRaw) || ('sheet_' + idx);
+                db[katKey].barang[brgKey].gejala[gjlKey] = {
+                    level: ['ringan', 'sedang', 'berat'].includes(level) ? level : 'ringan',
+                    levelLabel: tingkatRaw,
+                    gejalaText: gjlRaw,
+                    part: partRaw || '-',
+                    harga: parseInt(String(obj.hargapart || obj.harga || '0').replace(/[^0-9]/g, '')) || 0,
+                    ongkos: parseInt(String(obj.ongkos || '0').replace(/[^0-9]/g, '')) || 0,
+                    hargaBaru: parseInt(String(obj.hargabaru || '0').replace(/[^0-9]/g, '')) || 0,
+                    umurSisa: (obj.umur || obj.umursisa || '').trim() || '3 - 5 Tahun lagi',
+                    keputusan: obj.keputusan ? obj.keputusan.toLowerCase() : (level === 'berat' ? 'beli' : 'servis'),
+                    saran: (obj.saran || '').trim() || '-'
+                };
+                addedCount++;
+            });
+            return addedCount;
+        }
+
+        function parseCSVText(str) {
+            const arr = []; let row = ['']; let col = 0; let quote = false;
+            for (let c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                if (cc === '"') { quote = !quote; continue; }
+                if (!quote && cc === ',') { row[++col] = ''; continue; }
+                if (!quote && (cc === '\r' && nc === '\n' || cc === '\n')) { arr.push(row); row = ['']; col = 0; if (cc === '\r') c++; continue; }
+                row[col] += cc;
+            }
+            if (row.length > 1 || row[0] !== '') arr.push(row);
+            if (arr.length < 2) return [];
+            const headers = arr[0].map(h => h.trim().toLowerCase());
+            return arr.slice(1).map(r => { let obj = {}; headers.forEach((h, i) => obj[h] = r[i] ? r[i].trim() : ''); return obj; });
+        }
+
+        function updateSyncBadge(text, colorClass) {
+            const badge = document.getElementById('sync-badge');
+            if (badge) { badge.innerText = text; badge.className = `text-[10px] font-bold px-2 py-0.5 rounded border ${colorClass}`; }
+        }
+
+        window.onGvizLoad = function(response) {
+            try {
+                if (!response || !response.table || !response.table.rows) return;
+                const cols = response.table.cols.map(c => (c.label || '').trim().toLowerCase());
+                const rawRows = response.table.rows;
+                let headers = cols, dataStartIdx = 0;
+                if (!headers[0] && rawRows.length > 0 && rawRows[0].c) {
+                    headers = rawRows[0].c.map(cell => cell && cell.v ? String(cell.v).trim().toLowerCase() : '');
+                    dataStartIdx = 1;
+                }
+                const parsedRows = [];
+                for (let r = dataStartIdx; r < rawRows.length; r++) {
+                    const cells = rawRows[r].c || [];
+                    let obj = {};
+                    headers.forEach((h, i) => { if (h) obj[h] = cells[i] && cells[i].v !== null ? String(cells[i].v).trim() : ''; });
+                    parsedRows.push(obj);
+                }
+                if (mergeRowsToDB(parsedRows) > 0) {
+                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+                    updateSyncBadge("LIVE SHEETS SYNC", "bg-green-950 text-green-400 border-green-700");
+                }
+            } catch (e) { updateSyncBadge("LOCAL DB READY", "bg-zinc-800 text-gray-300 border-zinc-700"); }
+        };
+
+        async function syncGoogleSheets() {
+            try {
+                const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error();
+                const text = await response.text();
+                if (mergeRowsToDB(parseCSVText(text)) > 0) {
+                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+                    updateSyncBadge("LIVE CSV SYNC", "bg-green-950 text-green-400 border-green-700");
+                    return;
+                }
+                throw new Error();
+            } catch (e) {
+                const script = document.createElement('script');
+                script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:onGvizLoad`;
+                script.onerror = () => updateSyncBadge("OFFLINE DB", "bg-zinc-800 text-gray-300 border-zinc-700");
+                document.body.appendChild(script);
+            }
+        }
+
+        // === 4. NAVIGASI UI KATALOG ===
+        let selectedKat = null, selectedBrg = null;
+        const elRowKat = document.getElementById('row-kategori');
+        const elRowBrg = document.getElementById('row-barang');
+        const elRowGjl = document.getElementById('row-gejala');
+        const sectionBrg = document.getElementById('section-barang');
+        const sectionGjl = document.getElementById('section-gejala');
+        const resultBox = document.getElementById('result-box');
+
+        function renderCards(container, dataObj, onClickCallback, defaultIcon) {
+            container.innerHTML = '';
+            for (const key in dataObj) {
+                const item = dataObj[key];
+                const card = document.createElement('div');
+                card.className = 'nf-card shrink-0' + (selectedKat === key || selectedBrg === key ? ' active' : '');
+                card.innerHTML = `<div class="nf-card-bg flex flex-col pt-4">${item.icon || defaultIcon}</div><div class="nf-card-title">${item.label || key}</div>`;
+                card.onclick = () => onClickCallback(key, card);
+                container.appendChild(card);
+            }
+        }
+
+        function handleKatClick(key, cardElement) {
+            selectedKat = key; selectedBrg = null;
+            Array.from(elRowKat.children).forEach(c => c.classList.remove('active'));
+            cardElement.classList.add('active');
+            sectionGjl.classList.add('hidden'); resultBox.classList.add('hidden'); sectionBrg.classList.remove('hidden');
+            renderCards(elRowBrg, db[key].barang, handleBrgClick, db[key].icon);
+            sectionBrg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function handleBrgClick(key, cardElement) {
+            selectedBrg = key;
+            Array.from(elRowBrg.children).forEach(c => c.classList.remove('active'));
+            cardElement.classList.add('active');
+            resultBox.classList.add('hidden'); sectionGjl.classList.remove('hidden');
+            const gejalaData = db[selectedKat].barang[key].gejala;
+            elRowGjl.innerHTML = '';
+            for (const gKey in gejalaData) {
+                const gObj = gejalaData[gKey];
+                const badgeColor = gObj.level === 'ringan' ? 'bg-green-600' : gObj.level === 'sedang' ? 'bg-amber-600' : 'bg-red-600';
+                const card = document.createElement('div');
+                card.className = 'nf-card shrink-0 flex flex-col justify-between p-3';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start pointer-events-none">
+                        <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${badgeColor} text-white">${gObj.levelLabel}</span>
+                        <span class="text-[10px] text-gray-400">Est: Rp ${(gObj.harga + gObj.ongkos).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="font-semibold text-xs mt-2 line-clamp-2 text-gray-200 pointer-events-none">${gObj.gejalaText || gObj.part}</div>
+                    <div class="text-[10px] text-orange-400 mt-1 pointer-events-none">Klik Analisa →</div>
+                `;
+                card.onclick = () => handleGjlClick(gKey, card);
+                elRowGjl.appendChild(card);
+            }
+            sectionGjl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function handleGjlClick(key, cardElement) {
+            Array.from(elRowGjl.children).forEach(c => c.classList.remove('active'));
+            cardElement.classList.add('active');
+            const itemData = db[selectedKat].barang[selectedBrg];
+            const data = itemData.gejala[key];
+            const fmt = (num) => "Rp " + num.toLocaleString('id-ID');
+
+            document.getElementById('res-part').innerText = data.part;
+            document.getElementById('res-harga').innerText = data.harga > 0 ? fmt(data.harga) : "Gratis / Jasa Saja";
+            document.getElementById('res-ongkos').innerText = fmt(data.ongkos);
+            document.getElementById('res-total').innerText = fmt(data.harga + data.ongkos);
+            document.getElementById('res-saran').innerText = data.saran;
+            document.getElementById('res-beli').innerText = data.hargaBaru > 0 ? fmt(data.hargaBaru) : "Cek Online";
+            document.getElementById('res-umur').innerText = itemData.umurNormal;
+            document.getElementById('res-sisa').innerText = data.umurSisa;
+
+            const keputusanEl = document.getElementById('res-keputusan');
+            if(data.keputusan === 'servis') {
+                keputusanEl.className = "bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                keputusanEl.innerText = "SANGAT DISARANKAN: SERVIS";
+            } else if(data.keputusan === 'pertimbangkan') {
+                keputusanEl.className = "bg-amber-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                keputusanEl.innerText = "PERTIMBANGKAN: Bandingkan Biaya";
+            } else {
+                keputusanEl.className = "bg-red-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider";
+                keputusanEl.innerText = "DIREKOMENDASIKAN: BELI BARU";
+            }
+
+            document.getElementById('btn-search-maps').href = `https://www.google.com/maps/search/${encodeURIComponent("Jasa servis " + itemData.label + " terdekat")}`;
+            resultBox.classList.remove('hidden');
+            setTimeout(() => resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
         }
     </script>
 </body>
