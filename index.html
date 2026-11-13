@@ -199,7 +199,7 @@
             <!-- Result Box dengan GTA HUD Paywall Overlay -->
             <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto relative">
                 
-                <!-- GTA HUD TOP BAR (Wanted Stars & Assets) -->
+                <!-- GTA HUD TOP BAR -->
                 <div class="flex justify-between items-center mb-2 px-1 text-xs font-mono tracking-wider">
                     <div class="flex items-center gap-2">
                         <span class="text-red-500 font-bold tracking-widest text-sm">★ ★ ★ ☆ ☆</span>
@@ -245,18 +245,20 @@
                             </a>
                         </div>
 
-                        <!-- Footer HUD (Press ESC to abort) -->
+                        <!-- Footer HUD -->
                         <div class="w-full flex justify-between items-center mt-6 px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
                             <span>PRESS [ESC] TO ABORT</span>
                             <span>LOS SANTOS SYSTEMS v5.0</span>
                         </div>
                     </div>
 
-                    <!-- KONTEN HASIL ANALISA (DI-BLUR & TERBAYANG DI BELAKANG HUD) -->
-                    <div id="analysis-content" class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800 blur-spoiler">
-                        <div class="absolute top-4 left-4 z-10">
-                            <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded">PAK NANBE (EXPERT)</span>
+                    <!-- KONTEN HASIL ANALISA DENGAN GAMBAR SNIPER PAK NANBE -->
+                    <div id="analysis-content" class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800 blur-spoiler overflow-hidden">
+                        <div class="absolute top-3 left-3 z-10 bg-black/70 px-2 py-1 rounded border border-orange-500">
+                            <span class="text-orange-400 text-[10px] font-bold tracking-wider">PAK NANBE (EXPERT)</span>
                         </div>
+                        <!-- Gambar Vektor Sniper Pak Nanbe[cite: 16] -->
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'><rect width='1000' height='1000' fill='%231a1a1a'/></svg>" alt="Sniper Pak Nanbe" class="absolute inset-0 w-full h-full object-cover opacity-80" id="sniper-img-placeholder">
                     </div>
 
                     <div id="analysis-details" class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818] blur-spoiler">
