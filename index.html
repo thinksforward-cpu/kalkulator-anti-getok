@@ -294,7 +294,6 @@
                     <button onclick="bukaLinkBayarUlang()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-200 text-xs py-2 rounded transition">
                         Buka Ulang Halaman Pembayaran Lynk.id
                     </button>
-                    <!-- Tombol Ganti / Verifikasi Email Ulang -->
                     <button onclick="resetGantiEmail()" class="w-full bg-transparent text-[#E50914] hover:underline text-xs font-semibold py-1">
                         ✏️ Ganti / Verifikasi Email Lain
                     </button>
@@ -574,7 +573,8 @@
             const savedEmail = localStorage.getItem('nanbe_user_email');
             if (savedEmail) {
                 document.getElementById('user-email').value = savedEmail;
-                jalankanAutoPolling(savedEmail, itemKey, gejalaKey, true);
+                // Cek langsung ke server sebelum memutuskan buka form atau langsung buka analisa
+                verifikasiDanBuka(savedEmail, itemKey, gejalaKey);
             } else {
                 bukaFormInputEmail();
             }
@@ -609,26 +609,32 @@
                 return;
             }
             localStorage.setItem('nanbe_user_email', emailInput);
-            jalankanAutoPolling(emailInput, pendingItemKey, pendingGejalaKey, false);
+            verifikasiDanBuka(emailInput, pendingItemKey, pendingGejalaKey);
         }
 
-        async function jalankanAutoPolling(email, itemKey, gejalaKey, isAutoCheck) {
+        async function verifikasiDanBuka(email, itemKey, gejalaKey) {
+            // Cek status lunas ke server terlebih dahulu
+            const isLunas = await cekStatusServer(email, itemKey, gejalaKey);
+
+            if (isLunas) {
+                // Jika sudah bayar / matched, langsung tutup modal dan tampilkan hasil analisa!
+                closePaywall();
+            } else {
+                // Jika belum lunas, tampilkan status menunggu dan buka tab pembayaran Lynk.id
+                jalankanAutoPolling(email, itemKey, gejalaKey);
+            }
+        }
+
+        async function jalankanAutoPolling(email, itemKey, gejalaKey) {
             document.getElementById('lbl-current-email').innerText = email;
             document.getElementById('form-input-email').classList.add('hidden');
             document.getElementById('form-waiting-payment').classList.remove('hidden');
             document.getElementById('paywall-modal').classList.remove('hidden');
 
-            if (!isAutoCheck) {
-                window.open(LYNK_PAYMENT_URL, '_blank');
-            }
+            // Buka halaman pembayaran Lynk.id di tab baru karena belum lunas
+            window.open(LYNK_PAYMENT_URL, '_blank');
 
             if (pollingInterval) clearInterval(pollingInterval);
-
-            const statusLunas = await cekStatusServer(email, itemKey, gejalaKey);
-            if (statusLunas) {
-                closePaywall();
-                return;
-            }
 
             pollingInterval = setInterval(async () => {
                 const lunas = await cekStatusServer(email, itemKey, gejalaKey);
