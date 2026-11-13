@@ -76,7 +76,6 @@
         .result-box p { margin-bottom: 10px; font-size: 15px; color: #fff; }
         .result-box span { color: #46d369; font-weight: bold; }
         
-        /* Kotak Status Informasi ala Tema Gelap */
         .status-box { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.4; text-align: center; }
         .status-loading { background: #332701; border: 1px solid #b7950b; color: #f1c40f; }
         .status-success { background: #0e3b1c; border: 1px solid #27ae60; color: #2ecc71; font-weight: bold; }
@@ -142,7 +141,6 @@
     <script>
         const WORKER_URL = "https://api-antigetok.thinksforward.workers.dev/cek-akses";
 
-        // Auto-login jika email sudah tersimpan di browser
         window.onload = function() {
             const savedEmail = localStorage.getItem("antigetok_email");
             if (savedEmail) {
