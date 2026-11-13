@@ -74,6 +74,15 @@
             font-weight: 600; font-size: 14px;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
+        
+        /* Efek Blur & Sensor untuk Teaser */
+        .blur-spoiler {
+            filter: blur(8px);
+            user-select: none;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
         .hero-vignette { background: linear-gradient(to top, #141414 0%, transparent 100%); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
@@ -109,7 +118,7 @@
             </div>
             
             <h2 class="text-3xl text-white mb-2 cinematic-title">BUKA EPISODE FINAL</h2>
-            <p class="text-gray-400 text-xs mb-6">Masukkan email terdaftar Anda untuk melihat hasil analisa kewajaran harga.</p>
+            <p class="text-gray-400 text-xs mb-6">Masukkan email terdaftar Anda untuk membuka sensor hasil analisa kewajaran harga.</p>
             
             <div class="space-y-4 text-left">
                 <div>
@@ -118,7 +127,7 @@
                 </div>
                 
                 <button onclick="submitVerifikasi()" class="w-full bg-[#E50914] hover:bg-red-700 text-white font-bold py-3 rounded-lg transition cinematic-title text-lg tracking-wider">
-                    Cek & Buka Analisa
+                    Cek & Buka Sensor Analisa
                 </button>
 
                 <div id="statusBox" class="hidden p-3 rounded-lg text-xs text-center font-medium"></div>
@@ -130,7 +139,7 @@
                 </div>
 
                 <a href="https://lynk.id/nanbe/z6x97m67pm49" target="_blank" class="w-full block text-center bg-[#0071eb] hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition text-sm">
-                    🚀 Beli Akses via Lynk.id
+                    🚀 Beli Akses Instan via Lynk.id
                 </a>
             </div>
         </div>
@@ -178,12 +187,31 @@
                 <div id="row-gejala" class="carousel-container"></div>
             </div>
 
-            <!-- Result Box -->
-            <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto">
+            <!-- Result Box dengan Teaser / Paywall Overlay -->
+            <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto relative">
                 <h2 class="text-3xl text-white mb-4 cinematic-title text-center"><span class="text-[#E50914]">EPISODE FINAL:</span> HASIL ANALISA</h2>
                 
-                <div class="bg-[#181818] border border-zinc-800 rounded-lg shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in">
-                    <div class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800">
+                <div class="bg-[#181818] border border-zinc-800 rounded-lg shadow-2xl overflow-hidden flex flex-col md:flex-row animate-fade-in relative">
+                    
+                    <!-- PAYWALL OVERLAY (MUNCUL JIKA BELUM VERIFIKASI) -->
+                    <div id="paywall-overlay" class="absolute inset-0 z-30 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                        <div class="bg-[#E50914] text-white p-3 rounded-full shadow-lg mb-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <h3 class="text-2xl text-white cinematic-title mb-1">KONTEN DI-SENSOR & DI-BLUR</h3>
+                        <p class="text-gray-300 text-xs max-w-md mb-6">Hasil analisa lengkap, rincian harga komponen, dan rekomendasi wajar terkunci. Masukkan email terdaftar atau beli akses untuk membuka sensor.</p>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+                            <button onclick="openModalExplicit()" class="bg-[#E50914] hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm cinematic-title tracking-wider">
+                                🔑 Buka dengan Email
+                            </button>
+                            <a href="https://lynk.id/nanbe/z6x97m67pm49" target="_blank" class="bg-[#0071eb] hover:bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg transition text-sm">
+                                🚀 Beli via Lynk.id
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- KONTEN HASIL ANALISA (DI-BLUR SAAT TERKUNCI) -->
+                    <div id="analysis-content" class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800 blur-spoiler">
                         <div class="absolute top-4 left-4 z-10">
                             <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded">PAK NANBE (EXPERT)</span>
                         </div>
@@ -203,7 +231,7 @@
                         </svg>
                     </div>
 
-                    <div class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818]">
+                    <div id="analysis-details" class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818] blur-spoiler">
                         <div class="flex flex-wrap items-center justify-between mb-5 gap-3">
                             <div class="flex gap-2 flex-wrap items-center">
                                 <span id="res-keputusan" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider">SANGAT DISARANKAN: SERVIS</span>
@@ -302,12 +330,14 @@
 
                 if (result.lunas === true) {
                     statusBox.className = "p-3 rounded-lg text-xs text-center font-medium bg-green-950 text-green-400 border border-green-800";
-                    statusBox.innerText = "✅ Verifikasi Berhasil! Membuka hasil...";
+                    statusBox.innerText = "✅ Verifikasi Berhasil! Membuka sensor...";
                     
                     setTimeout(() => {
                         localStorage.setItem("antigetok_email", email);
                         closeModal();
                         checkSavedSessionUI();
+                        // Buka sensor blur
+                        unlockSpoiler();
                         if (pendingGjlKey && pendingCardEl) {
                             executeShowResult(pendingGjlKey, pendingCardEl);
                         }
@@ -323,6 +353,22 @@
             }
         }
 
+        function unlockSpoiler() {
+            document.getElementById('paywall-overlay').classList.add('hidden');
+            document.getElementById('analysis-content').classList.remove('blur-spoiler');
+            document.getElementById('analysis-details').classList.remove('blur-spoiler');
+        }
+
+        function lockSpoiler() {
+            document.getElementById('paywall-overlay').classList.remove('hidden');
+            document.getElementById('analysis-content').classList.add('blur-spoiler');
+            document.getElementById('analysis-details').classList.add('blur-spoiler');
+        }
+
+        function openModalExplicit() {
+            document.getElementById("auth-modal").classList.remove("hidden");
+        }
+
         function closeModal() {
             document.getElementById("auth-modal").classList.add("hidden");
             document.getElementById("statusBox").classList.add("hidden");
@@ -333,7 +379,8 @@
             localStorage.removeItem("antigetok_email");
             document.getElementById('user-status').innerText = "";
             document.getElementById('btn-logout').classList.add('hidden');
-            alert("Sesi email telah dihapus.");
+            lockSpoiler();
+            alert("Sesi email telah dihapus. Analisa kembali terkunci.");
         }
 
         function initThreeJS() {
@@ -552,13 +599,37 @@
         }
 
         function requestAnalisa(gKey, cardElement) {
+            pendingGjlKey = gKey;
+            pendingCardEl = cardElement;
+
+            // Selalu tampilkan box hasil dalam kondisi blur/terkunci (teaser) terlebih dahulu
+            executeShowResult(gKey, cardElement);
+            
             const savedEmail = localStorage.getItem("antigetok_email");
             if (savedEmail) {
-                executeShowResult(gKey, cardElement);
+                // Jika sudah ada sesi, langsung verifikasi otomatis di latar belakang untuk buka blur
+                verifySavedEmailQuietly(savedEmail);
             } else {
-                pendingGjlKey = gKey;
-                pendingCardEl = cardElement;
-                document.getElementById("auth-modal").classList.remove("hidden");
+                // Jika belum, pastikan paywall overlay aktif menutupi hasil
+                lockSpoiler();
+            }
+        }
+
+        async function verifySavedEmailQuietly(email) {
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: email })
+                });
+                const result = await response.json();
+                if (result.lunas === true) {
+                    unlockSpoiler();
+                } else {
+                    lockSpoiler();
+                }
+            } catch (e) {
+                lockSpoiler();
             }
         }
 
