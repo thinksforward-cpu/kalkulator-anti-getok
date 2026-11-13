@@ -199,7 +199,7 @@
             <!-- Result Box dengan GTA HUD Paywall Overlay -->
             <div id="result-box" class="hidden mt-12 max-w-5xl mx-auto relative">
                 
-                <!-- GTA HUD TOP BAR -->
+                <!-- GTA HUD TOP BAR (Wanted Stars & Assets) -->
                 <div class="flex justify-between items-center mb-2 px-1 text-xs font-mono tracking-wider">
                     <div class="flex items-center gap-2">
                         <span class="text-red-500 font-bold tracking-widest text-sm">★ ★ ★ ☆ ☆</span>
@@ -245,20 +245,19 @@
                             </a>
                         </div>
 
-                        <!-- Footer HUD -->
+                        <!-- Footer HUD (Press ESC to abort) -->
                         <div class="w-full flex justify-between items-center mt-6 px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
                             <span>PRESS [ESC] TO ABORT</span>
                             <span>LOS SANTOS SYSTEMS v5.0</span>
                         </div>
                     </div>
 
-                    <!-- KONTEN HASIL ANALISA DENGAN GAMBAR SNIPER PAK NANBE -->
+                    <!-- KONTEN HASIL ANALISA (DI-BLUR & TERBAYANG DI BELAKANG HUD) -->
                     <div id="analysis-content" class="md:w-1/3 relative bg-zinc-900 min-h-[250px] flex items-center justify-center border-r border-zinc-800 blur-spoiler overflow-hidden">
-                        <div class="absolute top-3 left-3 z-10 bg-black/70 px-2 py-1 rounded border border-orange-500">
-                            <span class="text-orange-400 text-[10px] font-bold tracking-wider">PAK NANBE (EXPERT)</span>
+                        <img src="305527.png" alt="Pak Nanbe Sniper Mode" class="absolute inset-0 w-full h-full object-cover opacity-90">
+                        <div class="absolute top-4 left-4 z-10">
+                            <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md">PAK NANBE (EXPERT)</span>
                         </div>
-                        <!-- Gambar Vektor Sniper Pak Nanbe[cite: 16] -->
-                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'><rect width='1000' height='1000' fill='%231a1a1a'/></svg>" alt="Sniper Pak Nanbe" class="absolute inset-0 w-full h-full object-cover opacity-80" id="sniper-img-placeholder">
                     </div>
 
                     <div id="analysis-details" class="md:w-2/3 p-6 md:p-8 flex flex-col justify-center bg-[#181818] blur-spoiler">
@@ -321,7 +320,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             initThreeJS();
-            renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+            renderCards(elRowKat, db, handleKatClick, icons.hobi);
             syncGoogleSheets();
             checkSavedSessionUI();
         });
@@ -453,23 +452,154 @@
         }
 
         const icons = {
-            elektronik: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path><circle cx="12" cy="10" r="2" class="motion-pulse" fill="#E50914" stroke="none"/></svg>`,
-            pribadi: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>`,
-            kendaraan: `<svg class="w-12 h-12 text-gray-400 motion-swing" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="7" cy="17" r="2" stroke-width="1.5"/><circle cx="17" cy="17" r="2" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 17H3v-6l2-5h9l4 5h3v6h-2"/></svg>`,
-            rumah: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>`,
+            hobi: `<svg class="w-12 h-12 text-gray-400 motion-float" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path></svg>`,
             gejala: `<svg class="w-12 h-12 text-[#E50914] motion-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
         };
 
+        // DATABASE TAMBAHAN (Kategori E: 20 Item Dapur, Kebun, Hobi, & Kendaraan Ringan)
         const db = {
-            "elektronik": {
-                label: "Elektronik & Dapur",
-                icon: icons.elektronik,
+            "hobi": {
+                label: "Dapur, Kebun, Hobi & DIY",
+                icon: icons.hobi,
                 barang: {
-                    "ac": { 
-                        label: "AC (Air Conditioner)", 
-                        umurNormal: "8 - 10 Tahun",
-                        gejala: { 
-                            "tdkdingin": { level: "sedang", levelLabel: "Sedang", part: "Kapasitor Kompresor Lemah", harga: 150000, ongkos: 100000, hargaBaru: 3500000, umurSisa: "3 - 5 Tahun lagi", keputusan: "servis", saran: "Angin keluar tapi tidak dingin. Wajib ganti kapasitor original." }
+                    "panciwajan": {
+                        label: "Panci & Wajan",
+                        umurNormal: "4 - 6 Tahun",
+                        gejala: {
+                            "gaganggoang": { level: "ringan", levelLabel: "Ringan", part: "Baut Pengunci Gagang", harga: 5000, ongkos: 15000, hargaBaru: 120000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Cukup kencangkan baut menggunakan obeng plus (+) atau ganti gagang plastik/kayu baru jika sudah patah." }
+                        }
+                    },
+                    "pancipresto": {
+                        label: "Panci Presto",
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: {
+                            "karetseal": { level: "sedang", levelLabel: "Sedang", part: "Karet Seal & Katup Uap", harga: 25000, ongkos: 15000, hargaBaru: 250000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Jangan sepelekan tekanan uap. Ganti karet seal silikon agar presto kembali rapat dan aman." }
+                        }
+                    },
+                    "pisaudapur": {
+                        label: "Pisau Dapur",
+                        umurNormal: "5 - 10 Tahun",
+                        gejala: {
+                            "tumpullepas": { level: "ringan", levelLabel: "Ringan", part: "Mata Pisau & Gagang", harga: 10000, ongkos: 10000, hargaBaru: 60000, umurSisa: "4 Tahun lagi", keputusan: "servis", saran: "Asah ulang dengan batu asahan grid halus atau lem epoxy jika gagang mulai longgar." }
+                        }
+                    },
+                    "guntingdapur": {
+                        label: "Gunting Dapur / Kain",
+                        umurNormal: "4 - 7 Tahun",
+                        gejala: {
+                            "tumpulengsel": { level: "ringan", levelLabel: "Ringan", part: "Baut Poros & Mata Gunting", harga: 5000, ongkos: 10000, hargaBaru: 45000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Kencangkan baut tengah dan asah kedua sisi mata gunting pada bagian miringnya." }
+                        }
+                    },
+                    "termosair": {
+                        label: "Termos Air Panas",
+                        umurNormal: "3 - 5 Tahun",
+                        gejala: {
+                            "tutupbocor": { level: "ringan", levelLabel: "Ringan", part: "Karet Tutup Termos", harga: 15000, ongkos: 10000, hargaBaru: 150000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Ganti ring karet tutup termos agar panas tidak cepat keluar dan air tidak merembes." }
+                        }
+                    },
+                    "tumbler": {
+                        label: "Botol Minum (Tumbler)",
+                        umurNormal: "2 - 4 Tahun",
+                        gejala: {
+                            "karetbocor": { level: "ringan", levelLabel: "Ringan", part: "Silicone Seal Tutup", harga: 10000, ongkos: 5000, hargaBaru: 100000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Cukup ganti seal karet tutup botol yang sudah aus agar tas tidak basah karena bocor." }
+                        }
+                    },
+                    "emberbaskom": {
+                        label: "Ember & Baskom Plastik",
+                        umurNormal: "3 - 5 Tahun",
+                        gejala: {
+                            "retakbocor": { level: "ringan", levelLabel: "Ringan", part: "Bodi Plastik", harga: 8000, ongkos: 10000, hargaBaru: 35000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Tambal retakan kecil menggunakan lem Korea (G) ditabur bubuk soda kue atau solder ulang." }
+                        }
+                    },
+                    "sapupel": {
+                        label: "Sapu & Pel Lantai",
+                        umurNormal: "2 - 3 Tahun",
+                        gejala: {
+                            "gagangpatah": { level: "ringan", levelLabel: "Ringan", part: "Gagang & Kepala Pel", harga: 12000, ongkos: 10000, hargaBaru: 40000, umurSisa: "1 Tahun lagi", keputusan: "servis", saran: "Ganti tangkai gagang aluminium atau kencangkan kembali penjepit kepala pel." }
+                        }
+                    },
+                    "guntingrumput": {
+                        label: "Gunting Rumput / Dahan",
+                        umurNormal: "4 - 6 Tahun",
+                        gejala: {
+                            "karatumpul": { level: "ringan", levelLabel: "Ringan", part: "Mata Pisau & Engsel", harga: 10000, ongkos: 15000, hargaBaru: 90000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bersihkan karat dengan sikat kawat, beri oli pada engsel, dan asah kembali." }
+                        }
+                    },
+                    "semprotantanaman": {
+                        label: "Semprotan Tanaman",
+                        umurNormal: "2 - 4 Tahun",
+                        gejala: {
+                            "nozzlersak": { level: "ringan", levelLabel: "Ringan", part: "Nozzle & Karet Pompa", harga: 15000, ongkos: 10000, hargaBaru: 65000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Bersihkan endapan pupuk/pestisida pada lubang nozzle menggunakan jarum halus dan beri sedikit vaseline pada karet pompa." }
+                        }
+                    },
+                    "sepeda": {
+                        label: "Sepeda Anak / Dewasa",
+                        umurNormal: "5 - 10 Tahun",
+                        gejala: {
+                            "banrantai": { level: "sedang", levelLabel: "Sedang", part: "Ban Dalam, Rem & Rantai", harga: 35000, ongkos: 25000, hargaBaru: 1500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti ban dalam jika bocor parah, setel tegangan rem, dan lumasi rantai agar ringan dikayuh." }
+                        }
+                    },
+                    "stroller": {
+                        label: "Stroller Bayi",
+                        umurNormal: "3 - 5 Tahun",
+                        gejala: {
+                            "rodamacet": { level: "sedang", levelLabel: "Sedang", part: "Roda, As & Pengunci", harga: 25000, ongkos: 20000, hargaBaru: 750000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Bersihkan kotoran rambut di as roda, beri pelumas semprot, dan perbaiki kancing lipatan." }
+                        }
+                    },
+                    "mainananak": {
+                        label: "Mainan Anak (Mobil/Robot)",
+                        umurNormal: "2 - 4 Tahun",
+                        gejala: {
+                            "kabelbaterai": { level: "ringan", levelLabel: "Ringan", part: "Kabel & Terminal Baterai", harga: 10000, ongkos: 15000, hargaBaru: 150000, umurSisa: "1 Tahun lagi", keputusan: "servis", saran: "Solder ulang kabel baterai yang putus dan bersihkan kerak putih pada terminal baterai dengan amplas halus." }
+                        }
+                    },
+                    "gitar": {
+                        label: "Gitar Akustik / Listrik",
+                        umurNormal: "10+ Tahun",
+                        gejala: {
+                            "senarleher": { level: "sedang", levelLabel: "Sedang", part: "Senar & Neck Gitar", harga: 45000, ongkos: 30000, hargaBaru: 750000, umurSisa: "5 Tahun lagi", keputusan: "servis", saran: "Ganti satu set senar baru, setel lengkungan truss rod leher gitar, dan bersihkan fretboard." }
+                        }
+                    },
+                    "raket": {
+                        label: "Raket Badminton / Tenis",
+                        umurNormal: "3 - 6 Tahun",
+                        gejala: {
+                            "senargrip": { level: "sedang", levelLabel: "Sedang", part: "Senar & Grip Pegangan", harga: 40000, ongkos: 15000, hargaBaru: 350000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Ganti senar dengan mesin stringer digital dan balut ulang grip yang sudah licin/kelupas." }
+                        }
+                    },
+                    "bolahraga": {
+                        label: "Bola Sepak / Basket / Voli",
+                        umurNormal: "2 - 4 Tahun",
+                        gejala: {
+                            "bocorpentil": { level: "ringan", levelLabel: "Ringan", part: "Pentil & Lem Tambal", harga: 15000, ongkos: 10000, hargaBaru: 200000, umurSisa: "1 Tahun lagi", keputusan: "servis", saran: "Ganti pentil bola atau suntikan cairan latex khusus penambal bocor halus di bagian dalam." }
+                        }
+                    },
+                    "alatpancing": {
+                        label: "Alat Pancing (Joran & Reel)",
+                        umurNormal: "5 - 8 Tahun",
+                        gejala: {
+                            "cincinreel": { level: "sedang", levelLabel: "Sedang", part: "Cincin Guide & Gear Reel", harga: 30000, ongkos: 25000, hargaBaru: 500000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Ganti cincin guide yang keramiknya pecah dan beri grease/pelumas khusus pada gear reel pancing." }
+                        }
+                    },
+                    "sentarlampu": {
+                        label: "Senter / Lampu Emergency",
+                        umurNormal: "2 - 4 Tahun",
+                        gejala: {
+                            "baterailemah": { level: "sedang", levelLabel: "Sedang", part: "Baterai Isi Ulang", harga: 25000, ongkos: 15000, hargaBaru: 120000, umurSisa: "1.5 Tahun lagi", keputusan: "servis", saran: "Ganti baterai SLA/lithium internal yang sudah drop dan bersihkan saklar geser yang berkarat." }
+                        }
+                    },
+                    "pompasepeda": {
+                        label: "Pompa Sepeda Manual",
+                        umurNormal: "3 - 6 Tahun",
+                        gejala: {
+                            "klepselang": { level: "ringan", levelLabel: "Ringan", part: "Karet Klep & Selang", harga: 15000, ongkos: 10000, hargaBaru: 85000, umurSisa: "2 Tahun lagi", keputusan: "servis", saran: "Ganti karet klep piston di dalam tabung pompa dan ganti selang jika sudah getas/bocor." }
+                        }
+                    },
+                    "gembok": {
+                        label: "Gembok Rumah",
+                        umurNormal: "5 - 10 Tahun",
+                        gejala: {
+                            "macetkarat": { level: "ringan", levelLabel: "Ringan", part: "Silinder & Rumah Kunci", harga: 10000, ongkos: 10000, hargaBaru: 60000, umurSisa: "3 Tahun lagi", keputusan: "servis", saran: "Semprot cairan penetran anti-karat (WD-40 sejenis) ke lubang kunci, jangan dipaksa putar agar tidak patah." }
                         }
                     }
                 }
@@ -547,7 +677,7 @@
                     parsedRows.push(obj);
                 }
                 if (mergeRowsToDB(parsedRows) > 0) {
-                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+                    renderCards(elRowKat, db, handleKatClick, icons.hobi);
                     updateSyncBadge("LIVE SHEETS SYNC", "bg-green-950 text-green-400 border-green-700");
                 }
             } catch (e) { updateSyncBadge("LOCAL DB READY", "bg-zinc-800 text-gray-300 border-zinc-700"); }
@@ -559,7 +689,7 @@
                 if (!response.ok) throw new Error();
                 const text = await response.text();
                 if (mergeRowsToDB(parseCSVText(text)) > 0) {
-                    renderCards(elRowKat, db, handleKatClick, icons.elektronik);
+                    renderCards(elRowKat, db, handleKatClick, icons.hobi);
                     updateSyncBadge("LIVE CSV SYNC", "bg-green-950 text-green-400 border-green-700");
                     return;
                 }
